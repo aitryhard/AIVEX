@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+.draggable {
+  -webkit-app-region: drag; /* ПЕРЕТАСКИВАНИЕ */
+}
+
+.no-drag {
+  -webkit-app-region: no-drag; /* БЛОК ПЕРЕТАСКИВАНИЯ */
+}
+
+
+/* SCROLLBAR */
+
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 80px;
+  cursor: default;
+
+  background: rgba(255, 255, 255, 0.18);
+  background-clip: content-box;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  transition: 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+  background-clip: content-box;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+
+body {
+  background: transparent;
+
+  backdrop-filter: blur(28px); /* BLUR */
+  -webkit-backdrop-filter: blur(28px);
+}
+
+
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  padding: 12px;
+
+  background: rgba(0, 0, 0, 0.28);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+
+.prose code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+.prose {
+  max-width: 100%;
+}
