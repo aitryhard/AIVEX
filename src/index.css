@@ -162,3 +162,12 @@ input[type="range"]:focus {
   border: 2px solid transparent;
   background-clip: padding-box;
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

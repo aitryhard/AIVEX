@@ -1,7 +1,7 @@
 {
   "name": "aivex",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.3",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.3",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.16.0",
+    "node-machine-id": "^1.1.12",
     "react": "^19.2.6",
     "react-colorful": "^5.7.0",
     "react-dom": "^19.2.6",
@@ -38,6 +41,25 @@
     "wait-on": "^9.0.10"
   },
   "build": {
+    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "icon": "build/icon.ico",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "aitryhard",
+        "repo": "AIVEX"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "backend/dist/aivex-backend.exe",
+        "to": "backend/aivex-backend.exe"
+      },
+      {
+        "from": "backend/.env",
+        "to": "backend/.env"
+      }
+    ],
     "appId": "com.aivex.app",
     "productName": "Aivex",
     "directories": {
@@ -49,7 +71,17 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aivex"
     }
   }
 }
