@@ -1,5 +1,6 @@
 import os
 
+from typing import List
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,10 +36,17 @@ openai_client = OpenAI(
 )
 
 
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
     text: str = ""
     profile: str = "Tutor"
     images: list[str] = []
+    history: List[HistoryMessage] = []
+    custom_prompt: str | None = None
 
 
 SYSTEM_PROMPTS = {
@@ -48,7 +56,9 @@ SYSTEM_PROMPTS = {
 Правила:
 - отвечай кратко;
 - не расписывай лишнее;
-- если вопрос тестовый — дай ответ и короткое пояснение.
+- не начинай ответ словами "Ответ:" или "Пояснение:";
+- не используй шаблонные заголовки без необходимости;
+- если вопрос тестовый — дай только итог и одну короткую причину.
 """,
 
     "Tutor": """
@@ -86,13 +96,28 @@ SYSTEM_PROMPTS = {
 """,
 }
 
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok"
+    }
+
 
 @app.post("/chat")
 async def chat(payload: ChatRequest):
-    system_prompt = SYSTEM_PROMPTS.get(
+    system_prompt = payload.custom_prompt or SYSTEM_PROMPTS.get(
         payload.profile,
         SYSTEM_PROMPTS["Tutor"],
     )
+    system_prompt += """
+
+    Общие правила:
+    - не начинай ответ словами "Ответ:" или "Пояснение:";
+    - не используй шаблонные заголовки без необходимости;
+    - не здоровайся без причины;
+    - не используй фразы вроде "Как posso помочь?";
+    - отвечай кратко, спокойно и профессионально.
+    """
 
     extracted_image_data = ""
 
@@ -158,18 +183,27 @@ async def chat(payload: ChatRequest):
         final_user_text = "Пользователь отправил пустой запрос."
 
     # 3. GPT даёт финальный ответ
+    conversation_messages = [
+        {
+            "role": "system",
+            "content": system_prompt,
+        }
+    ]
+
+    for msg in payload.history[-12:]:
+        conversation_messages.append({
+            "role": msg.role,
+            "content": msg.content,
+        })
+
+    conversation_messages.append({
+        "role": "user",
+        "content": final_user_text,
+    })
+
     completion = openai_client.chat.completions.create(
         model="openai/gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": final_user_text,
-            },
-        ],
+        messages=conversation_messages,
         extra_headers={
             "HTTP-Referer": "http://localhost:5173",
             "X-OpenRouter-Title": "Aivex",
