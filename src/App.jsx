@@ -6,7 +6,116 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { HexColorPicker } from "react-colorful";
 
-function TypingText({ text }) { // ЭФФЕКТ ПЕЧАТАНИЯ ДЛЯ ОТВЕТОВ AI
+function formatLanguageName(language) {
+  const names = {
+    js: "JavaScript",
+    javascript: "JavaScript",
+    jsx: "JSX",
+    ts: "TypeScript",
+    typescript: "TypeScript",
+    tsx: "TSX",
+    py: "Python",
+    python: "Python",
+    html: "HTML",
+    css: "CSS",
+    json: "JSON",
+    bash: "Bash",
+    shell: "Shell",
+  };
+
+  return names[language?.toLowerCase()] || language;
+}
+
+function renderMarkdown(text, copyCode, copiedCode, uiSettings) {
+  return (
+    <ReactMarkdown
+      components={{
+        pre({ children }) {
+          return <>{children}</>;
+        },
+
+        code({ inline, className, children, ...props }) {
+          const match = /language-(\w+)/.exec(className || "");
+
+          if (!inline && match) {
+            const codeText = String(children).replace(/\n$/, "");
+
+            return (
+              <div
+                className="my-4 overflow-hidden rounded-2xl border border-white/10 shadow-[0_12px_35px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+                style={{
+                  background: `${uiSettings.panelColor}88`,
+                  borderColor: `${uiSettings.userColor}18`,
+                }}
+              >
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-2.5 h-2.5 opacity-70 shrink-0 mt-[1px]">
+                      <div className="absolute inset-0 border border-white/100 rotate-45 rounded-[1px]" />
+                      <div className="absolute inset-[2px] bg-white/100 rotate-45 rounded-[1px]" />
+                    </div>
+
+                    <span className="text-[13px] text-white/90 font-semibold tracking-[0.02em] ml-1">
+                      {formatLanguageName(match[1])}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => copyCode(codeText)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-white/35 hover:text-white/80 hover:bg-white/10 transition"
+                    title={copiedCode === codeText ? "Скопировано" : "Копировать"}
+                  >
+                    {copiedCode === codeText ? (
+                      <Check size={14} />
+                    ) : (
+                      <Copy size={14} />
+                    )}
+                  </button>
+                </div>
+
+                <SyntaxHighlighter
+                  style={oneDark}
+                  language={match[1]}
+                  PreTag="div"
+                  customStyle={{
+                    margin: 0,
+                    padding: "14px 16px 16px",
+                    background: "rgba(0,0,0,0.12)",
+                    fontSize: "12px",
+                    borderRadius: 0,
+                  }}
+                  codeTagProps={{
+                    style: {
+                      background: "rgba(0,0,0,0.12)",
+                    },
+                  }}
+                  {...props}
+                >
+                  {codeText}
+                </SyntaxHighlighter>
+              </div>
+            );
+          }
+
+          return (
+            <code className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/90">
+              {children}
+            </code>
+          );
+        },
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
+
+function TypingText({
+  text,
+  copyCode,
+  copiedCode,
+  uiSettings,
+  onComplete,
+}) { // ЭФФЕКТ ПЕЧАТАНИЯ ДЛЯ ОТВЕТОВ AI
   const [displayed, setDisplayed] = useState("");
 
   useEffect(() => {
@@ -15,18 +124,30 @@ function TypingText({ text }) { // ЭФФЕКТ ПЕЧАТАНИЯ ДЛЯ ОТВ
     let index = 0;
 
     const interval = setInterval(() => {
-      index += 2;
+      index += 12;
+
       setDisplayed(text.slice(0, index));
+
+      window.dispatchEvent(new Event("aivex-scroll"));
 
       if (index >= text.length) {
         clearInterval(interval);
+
+        if (onComplete) {
+          onComplete();
+        }
       }
-    }, 12);
+    }, 45);
 
     return () => clearInterval(interval);
   }, [text]);
 
-  return <ReactMarkdown>{displayed}</ReactMarkdown>;
+  return renderMarkdown(
+    displayed,
+    copyCode,
+    copiedCode,
+    uiSettings
+  );
 }
 
 function getRandomStartMessage() {
@@ -115,6 +236,10 @@ function App() {
 
   // STATE //
 
+  const [appVersion, setAppVersion] = useState("");
+
+  const [updateStatus, setUpdateStatus] = useState(null);
+
   const [customProfiles, setCustomProfiles] = useState(() => {
     try {
       const saved = JSON.parse(
@@ -151,6 +276,8 @@ function App() {
     thinking: "standard",
   });
 
+  const messageInputRef = useRef(null);
+
   const imageInputRef = useRef(null);
 
   const [showSplash, setShowSplash] = useState(true);
@@ -170,6 +297,8 @@ function App() {
 
   const [backendOnline, setBackendOnline] = useState(false); // СТАТУС БЭКЕНДА
 
+  const [activationStatus, setActivationStatus] = useState(null); // СТАТУС АКТИВАЦИИ
+
   const [isDragging, setIsDragging] = useState(false); // ПЕРЕТАСКИВАНИЕ ФАЙЛОВ
 
   const [openedImages, setOpenedImages] = useState({}); // ОТКРЫТЫЕ ИЗОБРАЖЕНИЯ
@@ -186,10 +315,6 @@ function App() {
     return localStorage.getItem("aivex-theme") || "dark";
   });
 
-  const [footerHeight, setFooterHeight] = useState(() => { // FOOTER
-    return Number(localStorage.getItem("aivex-footer-height")) || 190;
-  });
-
   const [autoClipboard, setAutoClipboard] = useState(() => { // БУФЕР ОБМЕНА
     const saved = localStorage.getItem("aivex-auto-clipboard");
     return saved === null ? true : saved === "true";
@@ -199,13 +324,15 @@ function App() {
 
   const [lastClipboardImage, setLastClipboardImage] = useState(""); // ПОСЛЕДНЕЕ ИЗОБРАЖЕНИЕ В БУФЕРЕ
 
-  const [messages, setMessages] = useState([ // СПИСОК СООБЩЕНИЙ
+  const [messages, setMessages] = useState(() => [
     {
       role: "ai",
       text: getRandomStartMessage(),
       time: "",
     },
   ]);
+  
+  const [isTyping, setIsTyping] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false); // ЗАГРУЗКА
   const [copiedCode, setCopiedCode] = useState(""); // КОПИРОВАНИЕ КОДА
@@ -225,6 +352,55 @@ function App() {
   // EFFECTS //
 
   useEffect(() => {
+    if (!window.aivexWindow) return;
+
+    window.aivexWindow
+      .getVersion()
+      .then(setAppVersion);
+  }, []);
+
+  useEffect(() => {
+    if (!window.aivexWindow) return;
+
+    async function checkActivation() {
+      try {
+        const result =
+          await window.aivexWindow.getActivationStatus();
+
+        setActivationStatus(result);
+      } catch (err) {
+        console.error("=== ACTIVATION ERROR ===");
+        console.error(err);
+        console.error("MESSAGE:", err?.message);
+        console.error("STACK:", err?.stack);
+
+        return {
+          allowed: false,
+          status: "server_error",
+        };
+      }
+    }
+
+    checkActivation();
+
+    const interval = setInterval(checkActivation, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!window.aivexWindow) return;
+
+    window.aivexWindow.onUpdateAvailable(() => {
+      setUpdateStatus("available");
+    });
+
+    window.aivexWindow.onUpdateDownloaded(() => {
+      setUpdateStatus("downloaded");
+    });
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(
       "aivex-custom-themes",
       JSON.stringify(customThemes)
@@ -239,21 +415,17 @@ function App() {
   }, [customProfiles]);
 
   useEffect(() => {
+    if (!activationStatus?.allowed) {
+      setBackendOnline(false);
+      return;
+    }
+
     async function checkBackend() {
       try {
         const response = await fetch("http://127.0.0.1:8000/health");
         setBackendOnline(response.ok);
-      } catch (error) {
-        console.log(error);
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "ai",
-            text: `Ошибка: ${error.message}`,
-            time: getTime(),
-          },
-        ]);
+      } catch {
+        setBackendOnline(false);
       }
     }
 
@@ -262,7 +434,7 @@ function App() {
     const interval = setInterval(checkBackend, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [activationStatus]);
 
   useEffect(() => { // АВТОБУФЕР
     const interval = setInterval(async () => {
@@ -290,10 +462,12 @@ function App() {
         clipboardText.length > 0 &&
         clipboardText !== lastClipboard
       ) {
-        setMessage(clipboardText);
+        if (messageInputRef.current) {
+          messageInputRef.current.value = clipboardText;
+        }
         setLastClipboard(clipboardText);
       }
-    }, 700);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, [autoClipboard, lastClipboard, lastClipboardImage]);
@@ -302,19 +476,15 @@ function App() {
     localStorage.setItem("aivex-profile", profile);
   }, [profile]);
 
-  useEffect(() => { // СОХРАНЕНИЕ FOOTER
-    localStorage.setItem("aivex-footer-height", footerHeight);
-  }, [footerHeight]);
-
   useEffect(() => { // СОХРАНЕНИЕ БУФЕРА
     localStorage.setItem("aivex-auto-clipboard", autoClipboard);
   }, [autoClipboard]);
 
   useEffect(() => { // АВТОСКРОЛЛ
     chatEndRef.current?.scrollIntoView({
-      behavior: "smooth",
+      behavior: isTyping ? "auto" : "smooth",
     });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, isTyping]);
 
   useEffect(() => { // СОХРАНЕНИЕ ТЕМЫ
     localStorage.setItem("aivex-theme", theme);
@@ -358,26 +528,81 @@ function App() {
   }, []);
 
   useEffect(() => {
-    function handleEscape(e) {
+    function handleHotkeys(e) {
       if (e.key === "Escape") {
         setSettingsOpen(false);
         setProfileMenu(false);
+        return;
+      }
+
+      if (!e.ctrlKey || !e.shiftKey) return;
+
+      const profiles = [
+        "Quick",
+        "Tutor",
+        "Detailed",
+        "Code",
+        ...customProfiles.map((item) => item.name),
+      ];
+
+      const currentIndex = profiles.indexOf(profile);
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+
+        const nextIndex =
+          currentIndex === profiles.length - 1
+            ? 0
+            : currentIndex + 1;
+
+        setProfile(profiles[nextIndex]);
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+
+        const prevIndex =
+          currentIndex <= 0
+            ? profiles.length - 1
+            : currentIndex - 1;
+
+        setProfile(profiles[prevIndex]);
       }
     }
 
-    window.addEventListener("keydown", handleEscape);
+    window.addEventListener("keydown", handleHotkeys);
 
     return () => {
-      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("keydown", handleHotkeys);
     };
-  }, []);
+  }, [profile, customProfiles]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 1800);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+      }, 1800);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+    function handleTypingScroll() {
+      chatEndRef.current?.scrollIntoView({
+        behavior: "auto",
+      });
+    }
+
+    window.addEventListener(
+      "aivex-scroll",
+      handleTypingScroll
+    );
+
+    return () => {
+      window.removeEventListener(
+        "aivex-scroll",
+        handleTypingScroll
+      );
+    };
   }, []);
 
   // FUNCTIONS //
@@ -455,6 +680,7 @@ function App() {
     }
 
     setIsLoading(false);
+    setIsTyping(false);
   }
 
   function applyThemePreset(preset) {
@@ -500,28 +726,6 @@ function App() {
     });
   }
 
-  function startResizeFooter(e) { // ИЗМЕНЕНИЕ РАЗМЕРА
-    e.preventDefault();
-
-    const startY = e.clientY;
-    const startHeight = footerHeight;
-
-    function onMouseMove(moveEvent) { // ДВИЖЕНИЕ МЫШИ
-      const diff = startY - moveEvent.clientY;
-      const newHeight = Math.min(420, Math.max(190, startHeight + diff));
-
-      setFooterHeight(newHeight);
-    }
-
-    function onMouseUp() { // ОСТАНОВКА РЕСАЙЗА
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    }
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  }
-
   function clearChat() { // ОЧИСТКА ЧАТА
     const hasRealMessages = messages.some(
       (msg) => !START_MESSAGES.includes(msg.text)
@@ -537,6 +741,10 @@ function App() {
       },
     ]);
 
+    if (messageInputRef.current) {
+      messageInputRef.current.value = "";
+    }
+
     setMessage("");
     setClipboardImages([]);
     setOpenedImages({});
@@ -549,12 +757,18 @@ function App() {
   }
 
   async function sendMessage() { // ОТПРАВКА СООБЩЕНИЯ
-    if (isLoading) return;
-    if (!message.trim() && clipboardImages.length === 0) return;
+    if (!activationStatus?.allowed) return;
+    if (isLoading || isTyping) return;
+    const userMessage = messageInputRef.current?.value.trim() || "";
 
-    const userMessage = message.trim();
+    if (!userMessage && clipboardImages.length === 0) return;
+    
+    setIsTyping(false);
 
     const displayMessage = userMessage || "";
+
+    setIsTyping(true);
+    setIsLoading(false);
 
     setMessages((prev) => [
       ...prev,
@@ -566,7 +780,9 @@ function App() {
       },
     ]);
 
-    setMessage("");
+    if (messageInputRef.current) {
+      messageInputRef.current.value = "";
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 400));
 
@@ -631,7 +847,34 @@ function App() {
 
       const data = await response.json();
 
+      const MAX_CHAT_RESPONSE_LENGTH = 8000;
+
+      if (data.response.length > MAX_CHAT_RESPONSE_LENGTH) {
+        const saveResult = await window.aivexWindow.saveTextFile(data.response);
+
+        setIsLoading(false);
+        setIsTyping(false);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "ai",
+            text: saveResult?.saved
+              ? `Ответ получился слишком большим, поэтому я сохранил его в текстовый файл:\n\n${saveResult.path}`
+              : "Ответ получился слишком большим, но файл не был сохранён.",
+            time: getTime(),
+          },
+        ]);
+
+        setClipboardImages([]);
+        return;
+      }
+
+      setIsLoading(false);
+
       await new Promise((resolve) => setTimeout(resolve, 900));
+
+      setIsTyping(true);
 
       setMessages((prev) => [
         ...prev,
@@ -658,7 +901,6 @@ function App() {
       ]);
     } finally {
       abortControllerRef.current = null; // СБРОС КОНТРОЛЛЕРА
-      setIsLoading(false); // ЗАВЕРШЕНИЕ ЗАГРУЗКИ
     }
   }
 
@@ -708,6 +950,75 @@ function App() {
     boxShadow: `0 0 25px ${uiSettings.userColor}10`,
   };
 
+  if (activationStatus && !activationStatus.allowed) {
+    return (
+      <main className="w-screen h-screen bg-black text-white overflow-hidden">
+        <div className="h-8 flex items-center justify-end px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable">
+          <div className="flex items-center gap-2 no-drag">
+            <button
+              onClick={() => window.aivexWindow?.minimize()}
+              className="w-8 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition"
+            >
+              <Minus size={16} />
+            </button>
+
+            <button
+              onClick={() => window.aivexWindow?.maximize()}
+              className="w-8 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition"
+            >
+              <Square size={13} />
+            </button>
+
+            <button
+              onClick={() => window.aivexWindow?.close()}
+              className="w-8 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-red-300 hover:bg-red-500/15 transition"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="h-[calc(100vh-32px)] flex items-center justify-center">
+          <div className="w-[340px] rounded-[28px] border border-white/10 bg-white/[0.03] backdrop-blur-3xl p-8 text-center">
+            <div className="text-3xl font-bold tracking-tight">
+              Aivex
+            </div>
+
+            <div className="mt-6 text-white/80 text-sm">
+              {activationStatus.status === "pending"
+                ? "Ожидание активации..."
+                : activationStatus.status === "denied"
+                ? "Доступ отклонён"
+                : "Ошибка подключения к серверу"}
+            </div>
+
+            <div className="mt-4 text-xs text-white/35">
+              Приложение ожидает подтверждения устройства.
+            </div>
+
+            <div className="mt-7 flex justify-center">
+              <LoaderCircle
+                size={26}
+                className="animate-spin text-white/50"
+              />
+            </div>
+
+            <button
+              onClick={() =>
+                window.aivexWindow
+                  ?.getActivationStatus()
+                  .then(setActivationStatus)
+              }
+              className="mt-6 px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-xs text-white/70 hover:bg-white/15 hover:text-white transition"
+            >
+              Проверить снова
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main
       className="w-screen h-screen bg-transparent text-white overflow-hidden"
@@ -747,6 +1058,7 @@ function App() {
         });
       }}
     >
+
       {isDragging && (
         <div className="absolute inset-0 z-[999] bg-black/40 backdrop-blur-md flex items-center justify-center pointer-events-none">
           <div className="px-8 py-6 rounded-3xl border border-white/10 bg-white/10 text-white/80 text-lg font-medium">
@@ -763,7 +1075,7 @@ function App() {
           duration: 0.35,
           ease: "easeOut",
         }} style={panelStyle} className="relative w-screen h-screen rounded-[14px] border border-white/10 backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden">
-        <div className="h-7 flex items-center justify-end px-4 border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable">
+        <div className="h-8 flex items-center justify-end px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable">
           <div className="flex items-center gap-2 no-drag">
             <button
               onClick={() => window.aivexWindow?.minimize()}
@@ -810,7 +1122,7 @@ function App() {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 leading-none">
 
             <button
               onMouseDown={(e) => {
@@ -906,7 +1218,7 @@ function App() {
                         </div>
                       </button>
 
-                      {customProfiles.some((p) => p.name === item.name) && (
+                      {customProfiles.some((p) => p.name === item.name) && ( // КНОПКА УДАЛЕНИЯ ДЛЯ ПОЛЬЗОВАТЕЛЬСКИХ ПРОФИЛЕЙ
                       <button
                         onMouseDown={(e) => {
                             e.preventDefault();
@@ -941,6 +1253,33 @@ function App() {
             </div>
           </div>
         </header>
+
+      <AnimatePresence>
+        {updateStatus && !showSplash && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.18 }}
+            className="absolute top-[118px] left-1/2 -translate-x-1/2 z-[9999] rounded-2xl border border-white/10 bg-black/80 backdrop-blur-2xl px-4 py-3 shadow-2xl flex items-center gap-3"
+          >
+            <span className="text-xs text-white/75">
+              {updateStatus === "available"
+                ? "Доступно обновление..."
+                : "Обновление готово"}
+            </span>
+
+            {updateStatus === "downloaded" && (
+              <button
+                onClick={() => window.aivexWindow.installUpdate()}
+                className="px-3 py-1.5 rounded-xl bg-white text-black text-xs font-medium hover:bg-white/90 transition"
+              >
+                Обновить
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {settingsOpen && (
@@ -1116,6 +1455,9 @@ function App() {
                     Сбросить
                   </button>
                 </div>
+                <div className="text-[11px] text-white/35 mt-4 text-center">
+                  Aivex v{appVersion}
+                </div>
             
           </motion.div>
         )}
@@ -1286,7 +1628,7 @@ function App() {
             setProfileMenu(false);
             setProfileCreatorOpen(false);
           }}
-          className="flex-1 overflow-y-auto p-5 space-y-4"
+          className="flex-1 overflow-y-auto p-5 pb-[220px] space-y-4 scrollbar-hide"
         >
           <AnimatePresence>
             {messages.map((item, index) => (
@@ -1321,10 +1663,16 @@ function App() {
                         {item.text}
                       </span>
                     ) : item.animate ? (
-                      <TypingText text={item.text} />
+                        <TypingText
+                          onComplete={() => setIsTyping(false)}
+                          text={item.text}
+                          copyCode={copyCode}
+                          copiedCode={copiedCode}
+                          uiSettings={uiSettings}
+                        />
                     ) : (
-                      <ReactMarkdown>{item.text}</ReactMarkdown>
-                    ))}
+                      renderMarkdown(item.text, copyCode, copiedCode, uiSettings)
+                  ))}
 
                   {item.images?.length > 0 && (
                     <div className={item.text ? "mt-3" : ""}>
@@ -1401,20 +1749,8 @@ function App() {
           <div ref={chatEndRef} />
         </div>
 
-        <footer
-          style={{ height: `${footerHeight}px` }}
-          className="relative p-5 border-t border-white/10 bg-black/25 backdrop-blur-2xl"
-        >
-          <div
-            onMouseDown={startResizeFooter}
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-3 cursor-ns-resize no-drag flex items-center justify-center"
-          >
-            <div className="w-10 h-1 rounded-full bg-white/20 hover:bg-white/40 transition" />
-          </div>
-
-          <div className="h-full rounded-2xl bg-black/30 border border-white/10 backdrop-blur-2xl p-3 flex flex-col min-h-0">
-
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+        <footer className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 via-black/25 to-transparent pointer-events-none">
+          <div className="pointer-events-auto rounded-[28px] border border-white/10 bg-black/35 backdrop-blur-3xl p-3 flex flex-col shadow-2xl">
             {clipboardImages.length > 0 && (
               <div className="mb-3 flex items-center gap-2 flex-wrap">
                 {clipboardImages.map((image, index) => (
@@ -1442,10 +1778,9 @@ function App() {
                 ))}
               </div>
             )}
-          
+
             <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              ref={messageInputRef}
               onPaste={(e) => {
                 const items = Array.from(e.clipboardData.items);
 
@@ -1472,15 +1807,15 @@ function App() {
                 e.preventDefault();
               }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey && !isLoading && !isTyping) {
                   e.preventDefault();
                   sendMessage();
                 }
               }}
               placeholder="Спросите Aivex"
-              className="w-full flex-1 resize-none bg-transparent outline-none text-sm placeholder:text-white/30"
+              rows={3}
+              className="w-full resize-none bg-transparent outline-none text-sm placeholder:text-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
             />
-          </div>
 
             <input
               ref={imageInputRef}
@@ -1508,32 +1843,41 @@ function App() {
               }}
             />
 
-            <div className="shrink-0 flex items-center justify-between mt-3">
+            <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-3">
-              <button
-                onClick={() => imageInputRef.current?.click()}
-                className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
-              >
-                <ImagePlus size={15} />
-              </button>
+                <button
+                  onClick={() => imageInputRef.current?.click()}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
+                >
+                  <ImagePlus size={15} />
+                </button>
 
+                <button
+                  onClick={() => setAutoClipboard(!autoClipboard)}
+                  className={
+                    autoClipboard
+                      ? "text-xs text-emerald-300/80 hover:text-emerald-200 transition"
+                      : "text-xs text-white/30 hover:text-white/60 transition"
+                  }
+                >
+                  {autoClipboard ? "Буфер вкл." : "Буфер выкл."}
+                </button>
+              </div>
               <button
-                onClick={() => setAutoClipboard(!autoClipboard)}
-                className={
-                  autoClipboard
-                    ? "text-xs text-emerald-300/80 hover:text-emerald-200 transition"
-                    : "text-xs text-white/30 hover:text-white/60 transition"
-                }
-              >
-                {autoClipboard ? "Буфер вкл." : "Буфер выкл."}
-              </button>
-            </div>
+                onClick={() => {
+                  if (isTyping && !isLoading) return;
 
-              <button
-                onClick={isLoading ? cancelRequest : sendMessage}
+                  if (isLoading) {
+                    cancelRequest();
+                  } else {
+                    sendMessage();
+                  }
+                }}
                 className={
                   isLoading
                     ? "px-5 py-2 rounded-2xl bg-red-500/80 text-white text-sm font-medium hover:bg-red-500 transition"
+                    : isTyping
+                    ? "px-5 py-2 rounded-2xl bg-white/50 text-white/25 text-sm font-medium"
                     : "px-5 py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
                 }
               >
