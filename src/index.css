@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 .draggable {
@@ -73,4 +74,91 @@ body {
 
 .prose {
   max-width: 100%;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 0 12px rgba(255, 255, 255, 0.15),
+    0 4px 18px rgba(0, 0, 0, 0.25);
+  transition: 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.08);
+  background: white;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(0.96);
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+.react-colorful {
+  width: 100% !important;
+  height: 140px !important;
+}
+
+.react-colorful__saturation {
+  border-radius: 12px 12px 6px 6px !important;
+}
+
+.react-colorful__hue {
+  height: 8px !important;
+  border-radius: 999px !important;
+  margin-top: 8px;
+}
+
+.react-colorful__pointer {
+  width: 14px !important;
+  height: 14px !important;
+  border: 2px solid white !important;
+  box-shadow: none !important;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }

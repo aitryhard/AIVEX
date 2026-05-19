@@ -10,6 +10,7 @@ __pycache__
 backend/.env
 
 # builds
+build/
 dist/
 release
 build
