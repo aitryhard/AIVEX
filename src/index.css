@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap");
 @import "tailwindcss";
 
 .draggable {
@@ -8,7 +8,6 @@
 .no-drag {
   -webkit-app-region: no-drag; /* БЛОК ПЕРЕТАСКИВАНИЯ */
 }
-
 
 /* SCROLLBAR */
 
@@ -41,14 +40,12 @@
   border-radius: 999px;
 }
 
-
 body {
   background: transparent;
 
   backdrop-filter: blur(28px); /* BLUR */
   -webkit-backdrop-filter: blur(28px);
 }
-
 
 .prose pre {
   max-width: 100%;
@@ -65,12 +62,10 @@ body {
   border-radius: 14px;
 }
 
-
 .prose code {
   white-space: pre-wrap;
   word-break: break-word;
 }
-
 
 .prose {
   max-width: 100%;

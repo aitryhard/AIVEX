@@ -1,6 +1,14 @@
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
-const { app, BrowserWindow, ipcMain, clipboard, dialog } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  clipboard,
+  dialog,
+  desktopCapturer,
+  session,
+} = require("electron");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
@@ -58,22 +66,19 @@ async function checkActivation() {
       checkController.abort();
     }, 30000);
 
-    const response = await fetch(
-      `${ACTIVATION_SERVER}/check-access`,
-      {
-        signal: checkController.signal,
+    const response = await fetch(`${ACTIVATION_SERVER}/check-access`, {
+      signal: checkController.signal,
 
-        method: "POST",
+      method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+      headers: {
+        "Content-Type": "application/json",
+      },
 
-        body: JSON.stringify({
-          deviceId,
-        }),
-      }
-    );
+      body: JSON.stringify({
+        deviceId,
+      }),
+    });
 
     clearTimeout(checkTimeout);
 
@@ -82,7 +87,6 @@ async function checkActivation() {
     console.log("Activation result:", result);
 
     return result;
-
   } catch (err) {
     console.error("Activation FULL error:", err);
 
@@ -104,8 +108,20 @@ function startBackend() {
       : path.join(process.resourcesPath, "backend"),
     detached: false,
     windowsHide: true,
-    stdio: "ignore",
+    stdio: ["ignore", "ignore", "ignore"],
   });
+}
+
+function stopBackend() {
+  if (!backendProcess) return;
+
+  try {
+    backendProcess.kill("SIGTERM");
+  } catch (error) {
+    console.log("Backend kill error:", error);
+  }
+
+  backendProcess = null;
 }
 
 function createWindow() {
@@ -134,6 +150,18 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  session.defaultSession.setDisplayMediaRequestHandler(
+    async (request, callback) => {
+      const sources = await desktopCapturer.getSources({
+        types: ["screen", "window"],
+      });
+
+      callback({
+        video: sources[0],
+        audio: "loopback",
+      });
+    },
+  );
   const activation = await checkActivation();
 
   currentActivation = activation;
@@ -143,7 +171,9 @@ app.whenReady().then(async () => {
   createWindow();
 
   if (activation.allowed) {
-    startBackend();
+    setTimeout(() => {
+      startBackend();
+    }, 1200);
   }
 
   if (!isDev) {
@@ -207,9 +237,7 @@ ipcMain.handle("file:saveText", async (_, content) => {
   const result = await dialog.showSaveDialog(mainWindow, {
     title: "Сохранить ответ Aivex",
     defaultPath: "aivex-response.txt",
-    filters: [
-      { name: "Text File", extensions: ["txt"] },
-    ],
+    filters: [{ name: "Text File", extensions: ["txt"] }],
   });
 
   if (result.canceled || !result.filePath) {
@@ -254,14 +282,13 @@ ipcMain.handle("app:getVersion", () => {
   return app.getVersion();
 });
 
-app.on("before-quit", () => {
-  if (backendProcess) {
-    backendProcess.kill();
-    backendProcess = null;
-  }
-});
+app.on("before-quit", stopBackend);
+
+app.on("quit", stopBackend);
 
 app.on("window-all-closed", () => {
+  stopBackend();
+
   if (process.platform !== "darwin") {
     app.quit();
   }

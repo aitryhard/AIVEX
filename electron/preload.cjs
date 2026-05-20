@@ -9,25 +9,18 @@ contextBridge.exposeInMainWorld("aivexWindow", {
 
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
 
-  getClipboardText: () =>
-    ipcRenderer.invoke("clipboard:getText"),
+  getClipboardText: () => ipcRenderer.invoke("clipboard:getText"),
 
-  getClipboardImage: () =>
-    ipcRenderer.invoke("clipboard:getImage"),
+  getClipboardImage: () => ipcRenderer.invoke("clipboard:getImage"),
 
-  onUpdateAvailable: (callback) =>
-    ipcRenderer.on("update:available", callback),
+  onUpdateAvailable: (callback) => ipcRenderer.on("update:available", callback),
 
   onUpdateDownloaded: (callback) =>
     ipcRenderer.on("update:downloaded", callback),
 
-  getActivationStatus: () =>
-  ipcRenderer.invoke("activation:getStatus"),
+  getActivationStatus: () => ipcRenderer.invoke("activation:getStatus"),
 
-  installUpdate: () =>
-    ipcRenderer.send("update:install"),
+  installUpdate: () => ipcRenderer.send("update:install"),
 
-  saveTextFile: (content) =>
-  ipcRenderer.invoke("file:saveText", content),
-  
+  saveTextFile: (content) => ipcRenderer.invoke("file:saveText", content),
 });

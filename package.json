@@ -1,7 +1,7 @@
 {
   "name": "aivex",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.7",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -9,7 +9,10 @@
     "dev": "vite",
     "build": "vite build",
     "electron": "wait-on http://localhost:5173 && electron .",
-    "electron:dev": "concurrently \"npm run dev\" \"npm run electron\""
+    "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\""
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
@@ -36,7 +39,9 @@
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.6.0",
+    "prettier": "^3.8.3",
     "vite": "^8.0.12",
     "wait-on": "^9.0.10"
   },
@@ -81,7 +86,13 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Aivex"
+      "shortcutName": "Aivex",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "installerHeader": "build/nsis/installerHeader.bmp",
+      "installerSidebar": "build/nsis/installerSidebar.bmp"
     }
   }
 }

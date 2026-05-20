@@ -1,12 +1,28 @@
 import os
-
+from fastapi import UploadFile, File
+import tempfile
+import whisper
 from typing import List
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from pydantic import BaseModel
+import sys
+from pathlib import Path
 
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS) / relative_path
+
+    return Path(__file__).parent / relative_path
+
+
+FFMPEG_DIR = resource_path("ffmpeg")
+
+os.environ["PATH"] = str(FFMPEG_DIR) + os.pathsep + os.environ.get("PATH", "")
+
+model = None
 
 load_dotenv()
 
@@ -213,6 +229,47 @@ async def chat(payload: ChatRequest):
     return {
         "response": completion.choices[0].message.content
     }
+
+@app.post("/transcribe-audio")
+async def transcribe_audio(file: UploadFile = File(...)):
+    try:
+        suffix = os.path.splitext(file.filename)[1] or ".webm"
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=suffix
+        ) as temp:
+            temp.write(await file.read())
+            temp_path = temp.name
+
+        global model
+        
+        if model is None:
+            model = whisper.load_model("small")
+
+        result = model.transcribe(
+            temp_path,
+            language="ru",
+            fp16=False,
+            temperature=0,
+            condition_on_previous_text=True
+        )
+
+        return {
+            "text": result["text"]
+        }
+
+    except Exception as e:
+        return {
+            "text": f"Ошибка распознавания: {str(e)}"
+        }
+
+    finally:
+        if (
+            "temp_path" in locals()
+            and os.path.exists(temp_path)
+        ):
+            os.remove(temp_path)
 
 
 if __name__ == "__main__":

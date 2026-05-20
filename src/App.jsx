@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Minus, Square, X, Copy, Loader2, Check, SlidersHorizontal, LoaderCircle, ImagePlus } from "lucide-react";
+import {
+  Minus,
+  Square,
+  X,
+  Copy,
+  Loader2,
+  Check,
+  SlidersHorizontal,
+  LoaderCircle,
+  ImagePlus,
+  AudioLines,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -62,7 +73,9 @@ function renderMarkdown(text, copyCode, copiedCode, uiSettings) {
                   <button
                     onClick={() => copyCode(codeText)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-white/35 hover:text-white/80 hover:bg-white/10 transition"
-                    title={copiedCode === codeText ? "Скопировано" : "Копировать"}
+                    title={
+                      copiedCode === codeText ? "Скопировано" : "Копировать"
+                    }
                   >
                     {copiedCode === codeText ? (
                       <Check size={14} />
@@ -109,13 +122,8 @@ function renderMarkdown(text, copyCode, copiedCode, uiSettings) {
   );
 }
 
-function TypingText({
-  text,
-  copyCode,
-  copiedCode,
-  uiSettings,
-  onComplete,
-}) { // ЭФФЕКТ ПЕЧАТАНИЯ ДЛЯ ОТВЕТОВ AI
+function TypingText({ text, copyCode, copiedCode, uiSettings, onComplete }) {
+  // ЭФФЕКТ ПЕЧАТАНИЯ ДЛЯ ОТВЕТОВ AI
   const [displayed, setDisplayed] = useState("");
 
   useEffect(() => {
@@ -142,18 +150,11 @@ function TypingText({
     return () => clearInterval(interval);
   }, [text]);
 
-  return renderMarkdown(
-    displayed,
-    copyCode,
-    copiedCode,
-    uiSettings
-  );
+  return renderMarkdown(displayed, copyCode, copiedCode, uiSettings);
 }
 
 function getRandomStartMessage() {
-  return START_MESSAGES[
-    Math.floor(Math.random() * START_MESSAGES.length)
-  ];
+  return START_MESSAGES[Math.floor(Math.random() * START_MESSAGES.length)];
 }
 
 const START_MESSAGES = [
@@ -233,8 +234,13 @@ const THEME_PRESETS = [
 ];
 
 function App() {
-
   // STATE //
+
+  const activeAudioStatusIdRef = useRef(null);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
 
   const [appVersion, setAppVersion] = useState("");
 
@@ -242,9 +248,7 @@ function App() {
 
   const [customProfiles, setCustomProfiles] = useState(() => {
     try {
-      const saved = JSON.parse(
-        localStorage.getItem("aivex-custom-profiles")
-      );
+      const saved = JSON.parse(localStorage.getItem("aivex-custom-profiles"));
 
       return Array.isArray(saved) ? saved : [];
     } catch {
@@ -254,9 +258,7 @@ function App() {
 
   const [customThemes, setCustomThemes] = useState(() => {
     try {
-      const saved = JSON.parse(
-        localStorage.getItem("aivex-custom-themes")
-      );
+      const saved = JSON.parse(localStorage.getItem("aivex-custom-themes"));
 
       return Array.isArray(saved) ? saved : [];
     } catch {
@@ -281,18 +283,21 @@ function App() {
   const imageInputRef = useRef(null);
 
   const [showSplash, setShowSplash] = useState(true);
+  const [splashMode, setSplashMode] = useState("startup");
 
   const [activeColorTarget, setActiveColorTarget] = useState("panelColor");
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [uiSettings, setUiSettings] = useState(() => {
-    return JSON.parse(localStorage.getItem("aivex-ui-settings")) || {
-      opacity: 45,
-      panelColor: "#000000",
-      aiColor: "#ffffff",
-      userColor: "#3b82f6",
-    };
+    return (
+      JSON.parse(localStorage.getItem("aivex-ui-settings")) || {
+        opacity: 45,
+        panelColor: "#000000",
+        aiColor: "#ffffff",
+        userColor: "#3b82f6",
+      }
+    );
   });
 
   const [backendOnline, setBackendOnline] = useState(false); // СТАТУС БЭКЕНДА
@@ -303,19 +308,15 @@ function App() {
 
   const [openedImages, setOpenedImages] = useState({}); // ОТКРЫТЫЕ ИЗОБРАЖЕНИЯ
 
-  const [message, setMessage] = useState(""); // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
-
-  const [profile, setProfile] = useState(() => { // ПРОФИЛЬ
+  const [profile, setProfile] = useState(() => {
+    // ПРОФИЛЬ
     return localStorage.getItem("aivex-profile") || "Tutor";
   });
 
   const [profileMenu, setProfileMenu] = useState(false); // МЕНЮ ПРОФИЛЕЙ
 
-  const [theme, setTheme] = useState(() => { // ТЕМА
-    return localStorage.getItem("aivex-theme") || "dark";
-  });
-
-  const [autoClipboard, setAutoClipboard] = useState(() => { // БУФЕР ОБМЕНА
+  const [autoClipboard, setAutoClipboard] = useState(() => {
+    // БУФЕР ОБМЕНА
     const saved = localStorage.getItem("aivex-auto-clipboard");
     return saved === null ? true : saved === "true";
   });
@@ -331,7 +332,7 @@ function App() {
       time: "",
     },
   ]);
-  
+
   const [isTyping, setIsTyping] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false); // ЗАГРУЗКА
@@ -342,7 +343,8 @@ function App() {
   const profileRef = useRef(null); // ПРОФИЛЬ
   const [clipboardImages, setClipboardImages] = useState([]); // ИЗОБРАЖЕНИЕ ИЗ БУФЕРА
 
-  function getTime() { // ВРЕМЯ СООБЩЕНИЯ
+  function getTime() {
+    // ВРЕМЯ СООБЩЕНИЯ
     return new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -354,9 +356,7 @@ function App() {
   useEffect(() => {
     if (!window.aivexWindow) return;
 
-    window.aivexWindow
-      .getVersion()
-      .then(setAppVersion);
+    window.aivexWindow.getVersion().then(setAppVersion);
   }, []);
 
   useEffect(() => {
@@ -364,8 +364,7 @@ function App() {
 
     async function checkActivation() {
       try {
-        const result =
-          await window.aivexWindow.getActivationStatus();
+        const result = await window.aivexWindow.getActivationStatus();
 
         setActivationStatus(result);
       } catch (err) {
@@ -395,22 +394,17 @@ function App() {
       setUpdateStatus("available");
     });
 
-    window.aivexWindow.onUpdateDownloaded(() => {
-      setUpdateStatus("downloaded");
-    });
+    window.aivexWindow.onUpdateDownloaded(() => {});
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(
-      "aivex-custom-themes",
-      JSON.stringify(customThemes)
-    );
+    localStorage.setItem("aivex-custom-themes", JSON.stringify(customThemes));
   }, [customThemes]);
 
   useEffect(() => {
     localStorage.setItem(
       "aivex-custom-profiles",
-      JSON.stringify(customProfiles)
+      JSON.stringify(customProfiles),
     );
   }, [customProfiles]);
 
@@ -436,24 +430,19 @@ function App() {
     return () => clearInterval(interval);
   }, [activationStatus]);
 
-  useEffect(() => { // АВТОБУФЕР
+  useEffect(() => {
+    // АВТОБУФЕР
     const interval = setInterval(async () => {
       if (!window.aivexWindow) return;
       if (!autoClipboard) return;
 
-    const imageData = await window.aivexWindow.getClipboardImage();
+      const imageData = await window.aivexWindow.getClipboardImage();
 
-    if (
-      imageData &&
-      imageData !== lastClipboardImage
-    ) {
-      setClipboardImages((prev) => [
-        ...prev,
-        imageData,
-      ]);
+      if (imageData && imageData !== lastClipboardImage) {
+        setClipboardImages((prev) => [...prev, imageData]);
 
-      setLastClipboardImage(imageData);
-    }
+        setLastClipboardImage(imageData);
+      }
 
       const clipboardText = await window.aivexWindow.getClipboardText();
 
@@ -472,58 +461,42 @@ function App() {
     return () => clearInterval(interval);
   }, [autoClipboard, lastClipboard, lastClipboardImage]);
 
-  useEffect(() => { // СОХРАНЕНИЕ ПРОФИЛЯ
+  useEffect(() => {
+    // СОХРАНЕНИЕ ПРОФИЛЯ
     localStorage.setItem("aivex-profile", profile);
   }, [profile]);
 
-  useEffect(() => { // СОХРАНЕНИЕ БУФЕРА
+  useEffect(() => {
+    // СОХРАНЕНИЕ БУФЕРА
     localStorage.setItem("aivex-auto-clipboard", autoClipboard);
   }, [autoClipboard]);
 
-  useEffect(() => { // АВТОСКРОЛЛ
+  useEffect(() => {
+    // АВТОСКРОЛЛ
     chatEndRef.current?.scrollIntoView({
       behavior: isTyping ? "auto" : "smooth",
     });
   }, [messages, isLoading, isTyping]);
 
-  useEffect(() => { // СОХРАНЕНИЕ ТЕМЫ
-    localStorage.setItem("aivex-theme", theme);
-  }, [theme]);
-
   useEffect(() => {
-    localStorage.setItem(
-      "aivex-ui-settings",
-      JSON.stringify(uiSettings)
-    );
+    localStorage.setItem("aivex-ui-settings", JSON.stringify(uiSettings));
   }, [uiSettings]);
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        settingsRef.current &&
-        !settingsRef.current.contains(event.target)
-      ) {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
         setSettingsOpen(false);
       }
 
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target)
-      ) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileMenu(false);
       }
     }
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -551,9 +524,7 @@ function App() {
         e.preventDefault();
 
         const nextIndex =
-          currentIndex === profiles.length - 1
-            ? 0
-            : currentIndex + 1;
+          currentIndex === profiles.length - 1 ? 0 : currentIndex + 1;
 
         setProfile(profiles[nextIndex]);
       }
@@ -562,9 +533,7 @@ function App() {
         e.preventDefault();
 
         const prevIndex =
-          currentIndex <= 0
-            ? profiles.length - 1
-            : currentIndex - 1;
+          currentIndex <= 0 ? profiles.length - 1 : currentIndex - 1;
 
         setProfile(profiles[prevIndex]);
       }
@@ -578,34 +547,155 @@ function App() {
   }, [profile, customProfiles]);
 
   useEffect(() => {
-      const timer = setTimeout(() => {
-        setShowSplash(false);
-      }, 1800);
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1800);
 
-      return () => clearTimeout(timer);
-    }, []);
+    return () => clearTimeout(timer);
+  }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     function handleTypingScroll() {
       chatEndRef.current?.scrollIntoView({
         behavior: "auto",
       });
     }
 
-    window.addEventListener(
-      "aivex-scroll",
-      handleTypingScroll
-    );
+    window.addEventListener("aivex-scroll", handleTypingScroll);
 
     return () => {
-      window.removeEventListener(
-        "aivex-scroll",
-        handleTypingScroll
-      );
+      window.removeEventListener("aivex-scroll", handleTypingScroll);
     };
   }, []);
 
   // FUNCTIONS //
+
+  async function startDesktopAudioRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+
+      recordedChunksRef.current = [];
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType: "video/webm",
+      });
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioStatusId = activeAudioStatusIdRef.current;
+        const blob = new Blob(recordedChunksRef.current, {
+          type: "audio/webm",
+        });
+
+        stream.getTracks().forEach((track) => track.stop());
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === audioStatusId
+              ? {
+                  ...msg,
+                  text: "Aivex думает...",
+                }
+              : msg,
+          ),
+        );
+
+        const formData = new FormData();
+
+        formData.append("file", blob, "desktop-audio.webm");
+
+        setIsLoading(true);
+
+        try {
+          const response = await fetch(
+            "http://127.0.0.1:8000/transcribe-audio",
+            {
+              method: "POST",
+              body: formData,
+            },
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+          }
+
+          const data = await response.json();
+
+          setMessages((prev) => prev.filter((msg) => msg.type !== "recording"));
+
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === audioStatusId
+                ? {
+                    ...msg,
+                    type: "normal",
+                    text: data.text || "Не удалось распознать аудио.",
+                    time: getTime(),
+                  }
+                : msg,
+            ),
+          );
+        } catch (error) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === audioStatusId
+                ? {
+                    ...msg,
+                    type: "normal",
+                    text: `Ошибка распознавания аудио: ${error.message}`,
+                    time: getTime(),
+                  }
+                : msg,
+            ),
+          );
+        } finally {
+          activeAudioStatusIdRef.current = null;
+          setIsLoading(false);
+          setIsRecording(false);
+        }
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+
+      const audioStatusId = crypto.randomUUID();
+
+      activeAudioStatusIdRef.current = audioStatusId;
+
+      setMessages((prev) => [
+        ...prev.filter((msg) => msg.id !== "audio-status"),
+        {
+          id: audioStatusId,
+          role: "ai",
+          type: "audio-status",
+          text: "Распознаю аудио...",
+          time: getTime(),
+        },
+      ]);
+
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Recording error:", error);
+    }
+  }
+
+  function stopDesktopAudioRecording() {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
+
+    setIsRecording(false);
+  }
 
   function buildCustomPrompt(profile) {
     const lengthRules = {
@@ -616,7 +706,8 @@ function App() {
 
     const thinkingRules = {
       fast: "Думай быстро, давай практичный ответ без глубокого анализа.",
-      standard: "Думай стандартно, учитывай контекст и отвечай сбалансированно.",
+      standard:
+        "Думай стандартно, учитывай контекст и отвечай сбалансированно.",
       deep: "Думай глубоко, анализируй задачу внимательно и давай качественный ответ.",
     };
 
@@ -633,12 +724,10 @@ function App() {
   }
 
   function deleteCustomProfile(profileName) {
-    const currentProfiles = Array.isArray(customProfiles)
-      ? customProfiles
-      : [];
+    const currentProfiles = Array.isArray(customProfiles) ? customProfiles : [];
 
     const updatedProfiles = currentProfiles.filter(
-      (item) => item.name !== profileName
+      (item) => item.name !== profileName,
     );
 
     setCustomProfiles(updatedProfiles);
@@ -712,9 +801,7 @@ function App() {
   }
 
   function deleteCustomTheme(themeId) {
-    setCustomThemes((prev) =>
-      prev.filter((theme) => theme.id !== themeId)
-    );
+    setCustomThemes((prev) => prev.filter((theme) => theme.id !== themeId));
   }
 
   function resetUiSettings() {
@@ -726,9 +813,10 @@ function App() {
     });
   }
 
-  function clearChat() { // ОЧИСТКА ЧАТА
+  function clearChat() {
+    // ОЧИСТКА ЧАТА
     const hasRealMessages = messages.some(
-      (msg) => !START_MESSAGES.includes(msg.text)
+      (msg) => !START_MESSAGES.includes(msg.text),
     );
 
     if (!hasRealMessages) return;
@@ -745,24 +833,25 @@ function App() {
       messageInputRef.current.value = "";
     }
 
-    setMessage("");
     setClipboardImages([]);
     setOpenedImages({});
     setSettingsOpen(false);
     setProfileMenu(false);
   }
 
-  async function copyText(text) { // КОПИРОВАНИЕ ТЕКСТА
+  async function copyText(text) {
+    // КОПИРОВАНИЕ ТЕКСТА
     await navigator.clipboard.writeText(text);
   }
 
-  async function sendMessage() { // ОТПРАВКА СООБЩЕНИЯ
+  async function sendMessage() {
+    // ОТПРАВКА СООБЩЕНИЯ
     if (!activationStatus?.allowed) return;
     if (isLoading || isTyping) return;
     const userMessage = messageInputRef.current?.value.trim() || "";
 
     if (!userMessage && clipboardImages.length === 0) return;
-    
+
     setIsTyping(false);
 
     const displayMessage = userMessage || "";
@@ -792,8 +881,8 @@ function App() {
 
     // FETCH //
 
-  const controller = new AbortController();
-  abortControllerRef.current = controller;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const safeCustomProfiles = Array.isArray(customProfiles)
@@ -801,7 +890,7 @@ function App() {
         : [];
 
       const activeCustomProfile = safeCustomProfiles.find(
-        (item) => item.name === profile
+        (item) => item.name === profile,
       );
 
       const response = await fetch("http://127.0.0.1:8000/chat", {
@@ -809,30 +898,24 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-          body: JSON.stringify({
-            text: userMessage,
-            profile: profile,
-            images: clipboardImages,
+        body: JSON.stringify({
+          text: userMessage,
+          profile: profile,
+          images: clipboardImages,
 
-            custom_prompt: activeCustomProfile
-              ? buildCustomPrompt(activeCustomProfile)
-              : null,
+          custom_prompt: activeCustomProfile
+            ? buildCustomPrompt(activeCustomProfile)
+            : null,
 
-            history: messages
-              .filter(
-                (msg) =>
-                  !START_MESSAGES.includes(msg.text)
-              )
-              .map((msg) => ({
-                role:
-                  msg.role === "ai"
-                    ? "assistant"
-                    : "user",
+          history: messages
+            .filter((msg) => !START_MESSAGES.includes(msg.text))
+            .map((msg) => ({
+              role: msg.role === "ai" ? "assistant" : "user",
 
-                content: msg.text,
-              })),
-          }),
-          signal: controller.signal,
+              content: msg.text,
+            })),
+        }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -888,10 +971,11 @@ function App() {
 
       setClipboardImages([]);
     } catch (error) {
-        if (error.name === "AbortError") {
-          return;
-        }
-      setMessages((prev) => [ // ОШИБКА ПРИ ПОДКЛЮЧЕНИИ К БЭКЕНДУ
+      if (error.name === "AbortError") {
+        return;
+      }
+      setMessages((prev) => [
+        // ОШИБКА ПРИ ПОДКЛЮЧЕНИИ К БЭКЕНДУ
         ...prev,
         {
           role: "ai",
@@ -904,7 +988,8 @@ function App() {
     }
   }
 
-  async function copyCode(code) { // КОПИРОВАНИЕ КОДА
+  async function copyCode(code) {
+    // КОПИРОВАНИЕ КОДА
     await navigator.clipboard.writeText(code);
 
     setCopiedCode(code);
@@ -914,23 +999,9 @@ function App() {
     }, 2000);
   }
 
-  const isLight = theme === "light"; // СВЕТЛАЯ ТЕМА
-
-  const appBg = isLight // ФОН ОКНА
-    ? "bg-white/70 border-black/10"
-    : "bg-black/45 border-white/10";
-
-  const textColor = isLight ? "text-black" : "text-white"; // ЦВЕТ ТЕКСТА
-
-  const secondaryText = isLight ? "text-black/50" : "text-white/50"; // ВТОРИЧНЫЙ ТЕКСТ
-
-  const headerBg = isLight ? "bg-white/40" : "bg-black/30"; // HEADER
-
-  const footerBg = isLight ? "bg-white/40" : "bg-black/25"; // FOOTER
-
   const panelStyle = {
     backgroundColor: `${uiSettings.panelColor}${Math.round(
-      (uiSettings.opacity / 100) * 255
+      (uiSettings.opacity / 100) * 255,
     )
       .toString(16)
       .padStart(2, "0")}`,
@@ -980,16 +1051,14 @@ function App() {
 
         <div className="h-[calc(100vh-32px)] flex items-center justify-center">
           <div className="w-[340px] rounded-[28px] border border-white/10 bg-white/[0.03] backdrop-blur-3xl p-8 text-center">
-            <div className="text-3xl font-bold tracking-tight">
-              Aivex
-            </div>
+            <div className="text-3xl font-bold tracking-tight">Aivex</div>
 
             <div className="mt-6 text-white/80 text-sm">
               {activationStatus.status === "pending"
                 ? "Ожидание активации..."
                 : activationStatus.status === "denied"
-                ? "Доступ отклонён"
-                : "Ошибка подключения к серверу"}
+                  ? "Доступ отклонён"
+                  : "Ошибка подключения к серверу"}
             </div>
 
             <div className="mt-4 text-xs text-white/35">
@@ -997,10 +1066,7 @@ function App() {
             </div>
 
             <div className="mt-7 flex justify-center">
-              <LoaderCircle
-                size={26}
-                className="animate-spin text-white/50"
-              />
+              <LoaderCircle size={26} className="animate-spin text-white/50" />
             </div>
 
             <button
@@ -1048,17 +1114,13 @@ function App() {
           const reader = new FileReader();
 
           reader.onload = () => {
-            setClipboardImages((prev) => [
-              ...prev,
-              reader.result,
-            ]);
+            setClipboardImages((prev) => [...prev, reader.result]);
           };
 
           reader.readAsDataURL(file);
         });
       }}
     >
-
       {isDragging && (
         <div className="absolute inset-0 z-[999] bg-black/40 backdrop-blur-md flex items-center justify-center pointer-events-none">
           <div className="px-8 py-6 rounded-3xl border border-white/10 bg-white/10 text-white/80 text-lg font-medium">
@@ -1074,7 +1136,10 @@ function App() {
         transition={{
           duration: 0.35,
           ease: "easeOut",
-        }} style={panelStyle} className="relative w-screen h-screen rounded-[14px] border border-white/10 backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden">
+        }}
+        style={panelStyle}
+        className="relative w-screen h-screen rounded-[14px] border border-white/10 backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden"
+      >
         <div className="h-8 flex items-center justify-end px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable">
           <div className="flex items-center gap-2 no-drag">
             <button
@@ -1109,9 +1174,9 @@ function App() {
           className="p-5 border-b border-white/10 flex items-center justify-between"
         >
           <div className="flex items-center">
-          <h1 className="text-[24px] leading-none tracking-tight font-['Space_Grotesk'] font-bold">
-            Aivex
-          </h1>
+            <h1 className="text-[24px] leading-none tracking-tight font-['Space_Grotesk'] font-bold">
+              Aivex
+            </h1>
 
             <div
               className={
@@ -1123,7 +1188,6 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2 leading-none">
-
             <button
               onMouseDown={(e) => {
                 e.stopPropagation();
@@ -1184,59 +1248,58 @@ function App() {
                         name: "Code",
                         desc: "Помощь с программированием",
                       },
-                        ...customProfiles.map((item) => ({
+                      ...customProfiles.map((item) => ({
                         name: item.name,
                         desc: "Пользовательский профиль",
                       })),
                     ].map((item) => (
                       <div key={item.name} className="relative w-full">
-                      <button
-                        onClick={() => {
-                          setProfile(item.name);
-                          setProfileMenu(false);
-                        }}
-                        className={
-                          profile === item.name
-                            ? "w-full px-4 py-3 text-left bg-white/15 text-white"
-                            : "w-full px-4 py-3 text-left text-white/70 hover:bg-white/10 hover:text-white transition"
-                        }
-                      >
-                        <div>
-                          <div className="text-sm font-medium">
-                            {item.name}
-                          </div>
-
-                          <div
-                            className={
-                              profile === item.name
-                                ? "text-[11px] text-white/60 mt-1 leading-tight"
-                                : "text-[11px] text-white/35 mt-1 leading-tight"
-                            }
-                          >
-                            {item.desc}
-                          </div>
-                        </div>
-                      </button>
-
-                      {customProfiles.some((p) => p.name === item.name) && ( // КНОПКА УДАЛЕНИЯ ДЛЯ ПОЛЬЗОВАТЕЛЬСКИХ ПРОФИЛЕЙ
-                      <button
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                        <button
+                          onClick={() => {
+                            setProfile(item.name);
+                            setProfileMenu(false);
                           }}
+                          className={
+                            profile === item.name
+                              ? "w-full px-4 py-3 text-left bg-white/15 text-white"
+                              : "w-full px-4 py-3 text-left text-white/70 hover:bg-white/10 hover:text-white transition"
+                          }
+                        >
+                          <div>
+                            <div className="text-sm font-medium">
+                              {item.name}
+                            </div>
 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
+                            <div
+                              className={
+                                profile === item.name
+                                  ? "text-[11px] text-white/60 mt-1 leading-tight"
+                                  : "text-[11px] text-white/35 mt-1 leading-tight"
+                              }
+                            >
+                              {item.desc}
+                            </div>
+                          </div>
+                        </button>
 
-                          deleteCustomProfile(item.name);
-                        }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-white/25 hover:text-red-300 hover:bg-red-500/10 transition flex items-center justify-center text-[14px] leading-none"
-                      >
-                        ×
-                      </button>
-                      )}
-                    </div>
+                        {customProfiles.some((p) => p.name === item.name) && ( // КНОПКА УДАЛЕНИЯ ДЛЯ ПОЛЬЗОВАТЕЛЬСКИХ ПРОФИЛЕЙ
+                          <button
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+
+                              deleteCustomProfile(item.name);
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-white/25 hover:text-red-300 hover:bg-red-500/10 transition flex items-center justify-center text-[14px] leading-none"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
                     ))}
                     <button
                       onClick={() => {
@@ -1254,373 +1317,386 @@ function App() {
           </div>
         </header>
 
-      <AnimatePresence>
-        {updateStatus && !showSplash && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
-            className="absolute top-[118px] left-1/2 -translate-x-1/2 z-[9999] rounded-2xl border border-white/10 bg-black/80 backdrop-blur-2xl px-4 py-3 shadow-2xl flex items-center gap-3"
-          >
-            <span className="text-xs text-white/75">
-              {updateStatus === "available"
-                ? "Доступно обновление..."
-                : "Обновление готово"}
-            </span>
+        <AnimatePresence>
+          {updateStatus && !showSplash && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.18 }}
+              className="absolute top-[118px] left-1/2 -translate-x-1/2 z-[9999] rounded-2xl border border-white/10 bg-black/80 backdrop-blur-2xl px-4 py-3 shadow-2xl flex items-center gap-3"
+            >
+              <span className="text-xs text-white/75">
+                {updateStatus === "available"
+                  ? "Доступно обновление..."
+                  : "Обновление готово"}
+              </span>
 
-            {updateStatus === "downloaded" && (
-              <button
-                onClick={() => window.aivexWindow.installUpdate()}
-                className="px-3 py-1.5 rounded-xl bg-white text-black text-xs font-medium hover:bg-white/90 transition"
-              >
-                Обновить
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {updateStatus === "downloaded" && (
+                <button
+                  onClick={() => {
+                    setSplashMode("update");
+                    setShowSplash(true);
 
-      <AnimatePresence>
-        {settingsOpen && (
-          <motion.div ref={settingsRef} initial={{ opacity: 0, y: -12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -12, scale: 0.98 }} transition={{ duration: 0.18, ease: "easeOut" }} style={panelAccentStyle} className="fixed top-[91px] right-5 w-[360px] z-50 rounded-2xl border border-white/10 backdrop-blur-2xl p-4 space-y-4 shadow-2xl">
-            <div>
-              <h2 className="text-sm font-medium text-white/80">
-                Графика
-              </h2>
+                    setTimeout(() => {
+                      window.aivexWindow.installUpdate();
+                    }, 700);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-white text-black text-xs font-medium hover:bg-white/90 transition"
+                >
+                  Обновить
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              <p className="text-xs text-white/55 mt-1">
-                Настрой внешний вид панели и сообщений.
-              </p>
-              <div className="grid grid-cols-3 gap-2 pt-1 max-h-[170px] overflow-y-auto pr-1">
-                {THEME_PRESETS.map((preset) => (
-                  <button
-                    key={preset.name}
-                    onClick={() => applyThemePreset(preset)}
-                    className="h-[86px] rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] transition p-3 text-left"
-                  >
-                    <div className="text-xs font-medium text-white">
-                      {preset.name}
-                    </div>
+        <AnimatePresence>
+          {settingsOpen && (
+            <motion.div
+              ref={settingsRef}
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              style={panelAccentStyle}
+              className="fixed top-[91px] right-5 w-[360px] z-50 rounded-2xl border border-white/10 backdrop-blur-2xl p-4 space-y-4 shadow-2xl"
+            >
+              <div>
+                <h2 className="text-sm font-medium text-white/80">Графика</h2>
 
-                    <div className="flex items-center gap-1.5 mt-2">
-                      {[preset.panelColor, preset.aiColor, preset.userColor].map(
-                        (color) => (
+                <p className="text-xs text-white/55 mt-1">
+                  Настрой внешний вид панели и сообщений.
+                </p>
+                <div className="grid grid-cols-3 gap-2 pt-1 max-h-[170px] overflow-y-auto pr-1">
+                  {THEME_PRESETS.map((preset) => (
+                    <button
+                      key={preset.name}
+                      onClick={() => applyThemePreset(preset)}
+                      className="h-[86px] rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] transition p-3 text-left"
+                    >
+                      <div className="text-xs font-medium text-white">
+                        {preset.name}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 mt-2">
+                        {[
+                          preset.panelColor,
+                          preset.aiColor,
+                          preset.userColor,
+                        ].map((color) => (
                           <span
                             key={color}
                             className="w-4 h-4 rounded-full border border-white/10"
                             style={{ backgroundColor: color }}
                           />
-                        )
-                      )}
-                    </div>
-                  </button>
-                ))}
-
-                {customThemes.map((theme) => (
-                <div key={theme.id} className="group relative h-[86px]">
-                  <button
-                    onClick={() => applyThemePreset(theme)}
-                    className="w-full h-full rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] transition p-3 text-left"
-                  >
-                      <div className="text-xs font-medium text-white pr-5">
-                        {theme.name}
+                        ))}
                       </div>
+                    </button>
+                  ))}
 
-                      <div className="flex items-center gap-1.5 mt-2">
-                        {[theme.panelColor, theme.aiColor, theme.userColor].map(
-                          (color) => (
+                  {customThemes.map((theme) => (
+                    <div key={theme.id} className="group relative h-[86px]">
+                      <button
+                        onClick={() => applyThemePreset(theme)}
+                        className="w-full h-full rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] transition p-3 text-left"
+                      >
+                        <div className="text-xs font-medium text-white pr-5">
+                          {theme.name}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-2">
+                          {[
+                            theme.panelColor,
+                            theme.aiColor,
+                            theme.userColor,
+                          ].map((color) => (
                             <span
                               key={color}
                               className="w-4 h-4 rounded-full border border-white/10"
                               style={{ backgroundColor: color }}
                             />
-                          )
-                        )}
-                      </div>
-                    </button>
+                          ))}
+                        </div>
+                      </button>
 
-                    <button
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        deleteCustomTheme(theme.id);
-                      }}
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full text-white/0 hover:text-red-300 group-hover:text-white/25 hover:bg-red-500/10 transition flex items-center justify-center text-[14px] leading-none"
-                    >
-                      ×
-                    </button>
-                  </div>
+                      <button
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          deleteCustomTheme(theme.id);
+                        }}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full text-white/0 hover:text-red-300 group-hover:text-white/25 hover:bg-red-500/10 transition flex items-center justify-center text-[14px] leading-none"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      setSettingsOpen(false);
+                      setProfileMenu(false);
+                      setProfileCreatorOpen(false);
+                      setThemeCreatorOpen(true);
+                    }}
+                    className="h-[86px] rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] transition p-3 text-left"
+                  >
+                    <div className="text-xs font-medium text-white">+ Свой</div>
+
+                    <div className="text-[11px] text-white/35 mt-2">
+                      Сохранить стиль
+                    </div>
+                  </button>
+                </div>
+              </div>
+              <label className="block">
+                <span className="text-xs font-medium text-white/100">
+                  Прозрачность панели: {uiSettings.opacity}%
+                </span>
+                <input
+                  type="range"
+                  min="15"
+                  max="90"
+                  value={uiSettings.opacity}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onChange={(e) =>
+                    setUiSettings((prev) => ({
+                      ...prev,
+                      opacity: Number(e.target.value),
+                    }))
+                  }
+                  className="no-drag w-full mt-2 accent-white focus:outline-none"
+                />
+              </label>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  ["panelColor", "Панель"],
+                  ["aiColor", "AI"],
+                  ["userColor", "Пользователь"],
+                ].map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveColorTarget(key)}
+                    className={
+                      activeColorTarget === key
+                        ? "p-3 rounded-2xl border border-white/20 bg-white/10 text-left transition"
+                        : "p-3 rounded-2xl border border-white/10 bg-white/[0.03] text-left transition hover:bg-white/[0.05]"
+                    }
+                  >
+                    <div className="text-xs text-white/100 font-medium">
+                      {label}
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded-lg border border-white/10"
+                        style={{ backgroundColor: uiSettings[key] }}
+                      />
+
+                      <span className="text-xs text-white/35">
+                        {uiSettings[key]}
+                      </span>
+                    </div>
+                  </button>
                 ))}
+              </div>
 
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-2 backdrop-blur-xl">
+                <HexColorPicker
+                  color={uiSettings[activeColorTarget]}
+                  onChange={(color) =>
+                    setUiSettings((prev) => ({
+                      ...prev,
+                      [activeColorTarget]: color,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="flex justify-center">
                 <button
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    setSettingsOpen(false);
-                    setProfileMenu(false);
-                    setProfileCreatorOpen(false);
-                    setThemeCreatorOpen(true);
-                  }}
-                  className="h-[86px] rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] transition p-3 text-left"
+                  onClick={resetUiSettings}
+                  className="mt-0 px-4 py-1.5 rounded-xl bg-white/10 border border-white/10 text-[11px] text-white/60 hover:text-white hover:bg-white/15 transition"
                 >
-                  <div className="text-xs font-medium text-white">
-                    + Свой
-                  </div>
-
-                  <div className="text-[11px] text-white/35 mt-2">
-                    Сохранить стиль
-                  </div>
+                  Сбросить
                 </button>
               </div>
-            </div>
+              <div className="text-[11px] text-white/35 mt-4 text-center">
+                Aivex v{appVersion}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            <label className="block">
-              <span className="text-xs font-medium text-white/100">
-                Прозрачность панели: {uiSettings.opacity}%
-              </span>
+        <AnimatePresence>
+          {themeCreatorOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              style={panelAccentStyle}
+              className="fixed top-[91px] right-5 w-[360px] z-50 rounded-2xl border border-white/10 backdrop-blur-2xl p-4 space-y-4 shadow-2xl"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-medium text-white/80">
+                    Создать стиль
+                  </h2>
+
+                  <p className="text-xs text-white/55 mt-1">
+                    Сохранит текущие цвета и прозрачность.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setThemeCreatorOpen(false)}
+                  className="w-7 h-7 rounded-xl flex items-center justify-center text-white/35 hover:text-white hover:bg-white/10 transition"
+                >
+                  ×
+                </button>
+              </div>
 
               <input
-                type="range"
-                min="15"
-                max="90"
-                value={uiSettings.opacity}
+                value={newThemeName}
+                onChange={(e) => setNewThemeName(e.target.value)}
+                placeholder={`Стиль ${customThemes.length + 1}`}
+                className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-sm outline-none placeholder:text-white/35"
+              />
+
+              <button
+                onClick={createCustomTheme}
+                className="w-full py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
+              >
+                Создать
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {profileCreatorOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              style={panelAccentStyle}
+              className="fixed top-[91px] right-5 w-[360px] z-50 rounded-2xl border border-white/10 backdrop-blur-2xl p-4 space-y-4 shadow-2xl"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-medium text-white/80">
+                    Создать профиль
+                  </h2>
+
+                  <p className="text-xs text-white/55 mt-1">
+                    Настрой стиль поведения Aivex.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setProfileCreatorOpen(false)}
+                  className="w-7 h-7 rounded-xl flex items-center justify-center text-white/35 hover:text-white hover:bg-white/10 transition"
+                >
+                  ×
+                </button>
+              </div>
+
+              <input
+                value={newProfile.name}
                 onChange={(e) =>
-                  setUiSettings((prev) => ({
+                  setNewProfile((prev) => ({
                     ...prev,
-                    opacity: Number(e.target.value),
+                    name: e.target.value,
                   }))
                 }
-                className="w-full mt-2 accent-white focus:outline-none"
+                placeholder={`Профиль ${customProfiles.length + 1}`}
+                className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-sm outline-none placeholder:text-white/35"
               />
-            </label>
+
+              <div>
+                <div className="text-xs text-white/60 mb-2">Длина ответа</div>
 
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    ["panelColor", "Панель"],
-                    ["aiColor", "AI"],
-                    ["userColor", "Пользователь"],
+                    ["short", "Коротко"],
+                    ["standard", "Стандартно"],
+                    ["detailed", "Подробно"],
                   ].map(([key, label]) => (
                     <button
                       key={key}
-                      onClick={() => setActiveColorTarget(key)}
+                      onClick={() =>
+                        setNewProfile((prev) => ({
+                          ...prev,
+                          length: key,
+                        }))
+                      }
                       className={
-                        activeColorTarget === key
-                          ? "p-3 rounded-2xl border border-white/20 bg-white/10 text-left transition"
-                          : "p-3 rounded-2xl border border-white/10 bg-white/[0.03] text-left transition hover:bg-white/[0.05]"
+                        newProfile.length === key
+                          ? "py-2 rounded-xl bg-white text-black text-xs"
+                          : "py-2 rounded-xl bg-white/10 text-white/60 text-xs hover:bg-white/15"
                       }
                     >
-                      <div className="text-xs text-white/100 font-medium">{label}</div>
-
-                      <div className="mt-2 flex items-center gap-2">
-                        <div
-                          className="w-6 h-6 rounded-lg border border-white/10"
-                          style={{ backgroundColor: uiSettings[key] }}
-                        />
-
-                        <span className="text-xs text-white/35">
-                          {uiSettings[key]}
-                        </span>
-                      </div>
+                      {label}
                     </button>
                   ))}
                 </div>
+              </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-2 backdrop-blur-xl">
-                  <HexColorPicker
-                    color={uiSettings[activeColorTarget]}
-                    onChange={(color) =>
-                      setUiSettings((prev) => ({
-                        ...prev,
-                        [activeColorTarget]: color,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="flex justify-center">
-                  <button
-                    onClick={resetUiSettings}
-                    className="mt-0 px-4 py-1.5 rounded-xl bg-white/10 border border-white/10 text-[11px] text-white/60 hover:text-white hover:bg-white/15 transition"
-                  >
-                    Сбросить
-                  </button>
-                </div>
-                <div className="text-[11px] text-white/35 mt-4 text-center">
-                  Aivex v{appVersion}
-                </div>
-            
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {themeCreatorOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            style={panelAccentStyle}
-            className="fixed top-[91px] right-5 w-[360px] z-50 rounded-2xl border border-white/10 backdrop-blur-2xl p-4 space-y-4 shadow-2xl"
-          >
-            <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-sm font-medium text-white/80">
-                  Создать стиль
-                </h2>
+                <div className="text-xs text-white/60 mb-2">
+                  Глубина анализа
+                </div>
 
-                <p className="text-xs text-white/55 mt-1">
-                  Сохранит текущие цвета и прозрачность.
-                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    ["fast", "Быстро"],
+                    ["standard", "Обычно"],
+                    ["deep", "Глубоко"],
+                  ].map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() =>
+                        setNewProfile((prev) => ({
+                          ...prev,
+                          thinking: key,
+                        }))
+                      }
+                      className={
+                        newProfile.thinking === key
+                          ? "py-2 rounded-xl bg-white text-black text-xs"
+                          : "py-2 rounded-xl bg-white/10 text-white/60 text-xs hover:bg-white/15"
+                      }
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <button
-                onClick={() => setThemeCreatorOpen(false)}
-                className="w-7 h-7 rounded-xl flex items-center justify-center text-white/35 hover:text-white hover:bg-white/10 transition"
+                onClick={createCustomProfile}
+                className="w-full py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
               >
-                ×
+                Создать
               </button>
-            </div>
-
-            <input
-              value={newThemeName}
-              onChange={(e) => setNewThemeName(e.target.value)}
-              placeholder={`Стиль ${customThemes.length + 1}`}
-              className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-sm outline-none placeholder:text-white/35"
-            />
-
-            <button
-              onClick={createCustomTheme}
-              className="w-full py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
-            >
-              Создать
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {profileCreatorOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            style={panelAccentStyle}
-            className="fixed top-[91px] right-5 w-[360px] z-50 rounded-2xl border border-white/10 backdrop-blur-2xl p-4 space-y-4 shadow-2xl"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-medium text-white/80">
-                  Создать профиль
-                </h2>
-
-                <p className="text-xs text-white/55 mt-1">
-                  Настрой стиль поведения Aivex.
-                </p>
-              </div>
-
-              <button
-                onClick={() => setProfileCreatorOpen(false)}
-                className="w-7 h-7 rounded-xl flex items-center justify-center text-white/35 hover:text-white hover:bg-white/10 transition"
-              >
-                ×
-              </button>
-            </div>
-
-            <input
-              value={newProfile.name}
-              onChange={(e) =>
-                setNewProfile((prev) => ({
-                  ...prev,
-                  name: e.target.value,
-                }))
-              }
-              placeholder={`Профиль ${customProfiles.length + 1}`}
-              className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-sm outline-none placeholder:text-white/35"
-            />
-
-            <div>
-              <div className="text-xs text-white/60 mb-2">
-                Длина ответа
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  ["short", "Коротко"],
-                  ["standard", "Стандартно"],
-                  ["detailed", "Подробно"],
-                ].map(([key, label]) => (
-                  <button
-                    key={key}
-                    onClick={() =>
-                      setNewProfile((prev) => ({
-                        ...prev,
-                        length: key,
-                      }))
-                    }
-                    className={
-                      newProfile.length === key
-                        ? "py-2 rounded-xl bg-white text-black text-xs"
-                        : "py-2 rounded-xl bg-white/10 text-white/60 text-xs hover:bg-white/15"
-                    }
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-xs text-white/60 mb-2">
-                Глубина анализа
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  ["fast", "Быстро"],
-                  ["standard", "Обычно"],
-                  ["deep", "Глубоко"],
-                ].map(([key, label]) => (
-                  <button
-                    key={key}
-                    onClick={() =>
-                      setNewProfile((prev) => ({
-                        ...prev,
-                        thinking: key,
-                      }))
-                    }
-                    className={
-                      newProfile.thinking === key
-                        ? "py-2 rounded-xl bg-white text-black text-xs"
-                        : "py-2 rounded-xl bg-white/10 text-white/60 text-xs hover:bg-white/15"
-                    }
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={createCustomProfile}
-              className="w-full py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
-            >
-              Создать
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div
           onMouseDown={() => {
@@ -1641,11 +1717,7 @@ function App() {
                 }
               >
                 <motion.div
-                style={
-                  item.role === "user"
-                    ? userBubbleStyle
-                    : aiBubbleStyle
-                }
+                  style={item.role === "user" ? userBubbleStyle : aiBubbleStyle}
                   initial={{ opacity: 0, y: 12, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.98 }}
@@ -1656,13 +1728,19 @@ function App() {
                       : "w-fit max-w-[88%] rounded-[20px] rounded-tl-md border border-white/10 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                   }
                 >
-                <div className="text-sm leading-relaxed text-white/90 prose prose-invert break-words max-w-none">
-                  {item.text &&
-                    (START_MESSAGES.includes(item.text) ? (
-                      <span className="italic text-white/60">
-                        {item.text}
-                      </span>
-                    ) : item.animate ? (
+                  <div className="text-sm leading-relaxed text-white/90 prose prose-invert break-words max-w-none">
+                    {item.type === "audio-status" ? (
+                      <div className="flex items-center gap-2 text-white/60">
+                        <Loader2 size={15} className="animate-spin" />
+                        <span>{item.text}</span>
+                      </div>
+                    ) : (
+                      item.text &&
+                      (START_MESSAGES.includes(item.text) ? (
+                        <span className="italic text-white/60">
+                          {item.text}
+                        </span>
+                      ) : item.animate ? (
                         <TypingText
                           onComplete={() => setIsTyping(false)}
                           text={item.text}
@@ -1670,54 +1748,60 @@ function App() {
                           copiedCode={copiedCode}
                           uiSettings={uiSettings}
                         />
-                    ) : (
-                      renderMarkdown(item.text, copyCode, copiedCode, uiSettings)
-                  ))}
+                      ) : (
+                        renderMarkdown(
+                          item.text,
+                          copyCode,
+                          copiedCode,
+                          uiSettings,
+                        )
+                      ))
+                    )}
 
-                  {item.images?.length > 0 && (
-                    <div className={item.text ? "mt-3" : ""}>
-                      <button
-                        onClick={() =>
-                          setOpenedImages((prev) => ({
-                            ...prev,
-                            [index]: !prev[index],
-                          }))
-                        }
-                        className="italic text-white/45 hover:text-white/80 transition"
-                      >
-                        {item.images.length === 1
-                          ? "Изображение"
-                          : `Изображения (${item.images.length})`}
-                      </button>
+                    {item.images?.length > 0 && (
+                      <div className={item.text ? "mt-3" : ""}>
+                        <button
+                          onClick={() =>
+                            setOpenedImages((prev) => ({
+                              ...prev,
+                              [index]: !prev[index],
+                            }))
+                          }
+                          className="italic text-white/45 hover:text-white/80 transition"
+                        >
+                          {item.images.length === 1
+                            ? "Изображение"
+                            : `Изображения (${item.images.length})`}
+                        </button>
 
-                      {openedImages[index] && (
-                        <div className="mt-3 flex gap-2 flex-wrap">
-                          {item.images.map((image, imgIndex) => (
-                            <div
-                              key={imgIndex}
-                              className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10 bg-black/30"
-                            >
-                              <img
-                                src={image}
-                                alt="Sent"
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        {openedImages[index] && (
+                          <div className="mt-3 flex gap-2 flex-wrap">
+                            {item.images.map((image, imgIndex) => (
+                              <div
+                                key={imgIndex}
+                                className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10 bg-black/30"
+                              >
+                                <img
+                                  src={image}
+                                  alt="Sent"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {item.role === "ai" &&
                     !START_MESSAGES.includes(item.text) && (
-                    <button
-                      onClick={() => copyText(item.text)}
-                      className="mt-3 w-7 h-7 rounded-lg flex items-center justify-center text-white/35 hover:text-white/80 hover:bg-white/10 transition"
-                    >
-                      <Copy size={14} />
-                    </button>
-                  )}
+                      <button
+                        onClick={() => copyText(item.text)}
+                        className="mt-3 w-7 h-7 rounded-lg flex items-center justify-center text-white/35 hover:text-white/80 hover:bg-white/10 transition"
+                      >
+                        <Copy size={14} />
+                      </button>
+                    )}
                 </motion.div>
 
                 {item.time && (
@@ -1730,27 +1814,35 @@ function App() {
           </AnimatePresence>
 
           <AnimatePresence>
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                className="w-fit rounded-2xl rounded-tl-md bg-white/10 border border-white/10 px-4 py-3"
-              >
-                <div className="flex items-center gap-2 text-sm text-white/60">
-                  <Loader2 size={15} className="animate-spin" />
-                  <span>Aivex думает...</span>
-                </div>
-              </motion.div>
-            )}
+            {isLoading &&
+              !messages.some((msg) => msg.type === "audio-status") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className="w-fit rounded-2xl rounded-tl-md bg-white/10 border border-white/10 px-4 py-3"
+                >
+                  <div className="flex items-center gap-2 text-sm text-white/60">
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Aivex думает...</span>
+                  </div>
+                </motion.div>
+              )}
           </AnimatePresence>
 
           <div ref={chatEndRef} />
         </div>
 
         <footer className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 via-black/25 to-transparent pointer-events-none">
-          <div className="pointer-events-auto rounded-[28px] border border-white/10 bg-black/35 backdrop-blur-3xl p-3 flex flex-col shadow-2xl">
+          <div
+            className="pointer-events-auto rounded-[28px] border border-white/10 p-3 flex flex-col shadow-2xl backdrop-blur-[40px]"
+            style={{
+              background: `${uiSettings.panelColor}CC`,
+              borderColor: `${uiSettings.userColor}18`,
+              boxShadow: `0 0 25px ${uiSettings.userColor}10`,
+            }}
+          >
             {clipboardImages.length > 0 && (
               <div className="mb-3 flex items-center gap-2 flex-wrap">
                 {clipboardImages.map((image, index) => (
@@ -1767,7 +1859,7 @@ function App() {
                     <button
                       onClick={() =>
                         setClipboardImages((prev) =>
-                          prev.filter((_, i) => i !== index)
+                          prev.filter((_, i) => i !== index),
                         )
                       }
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white/70 hover:text-white text-xs flex items-center justify-center"
@@ -1785,7 +1877,7 @@ function App() {
                 const items = Array.from(e.clipboardData.items);
 
                 const imageItems = items.filter((item) =>
-                  item.type.startsWith("image/")
+                  item.type.startsWith("image/"),
                 );
 
                 if (imageItems.length === 0) return;
@@ -1795,10 +1887,7 @@ function App() {
                   const reader = new FileReader();
 
                   reader.onload = () => {
-                    setClipboardImages((prev) => [
-                      ...prev,
-                      reader.result,
-                    ]);
+                    setClipboardImages((prev) => [...prev, reader.result]);
                   };
 
                   reader.readAsDataURL(file);
@@ -1807,7 +1896,12 @@ function App() {
                 e.preventDefault();
               }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !isLoading && !isTyping) {
+                if (
+                  e.key === "Enter" &&
+                  !e.shiftKey &&
+                  !isLoading &&
+                  !isTyping
+                ) {
                   e.preventDefault();
                   sendMessage();
                 }
@@ -1830,10 +1924,7 @@ function App() {
                   const reader = new FileReader();
 
                   reader.onload = () => {
-                    setClipboardImages((prev) => [
-                      ...prev,
-                      reader.result,
-                    ]);
+                    setClipboardImages((prev) => [...prev, reader.result]);
                   };
 
                   reader.readAsDataURL(file);
@@ -1850,6 +1941,26 @@ function App() {
                   className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
                 >
                   <ImagePlus size={15} />
+                </button>
+
+                <button
+                  onClick={
+                    isRecording
+                      ? stopDesktopAudioRecording
+                      : startDesktopAudioRecording
+                  }
+                  className={
+                    isRecording
+                      ? "w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/80 border border-red-400/30 text-white hover:bg-red-500 transition"
+                      : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
+                  }
+                  title={
+                    isRecording
+                      ? "Остановить запись"
+                      : "Записать аудио рабочего стола"
+                  }
+                >
+                  <AudioLines size={15} />
                 </button>
 
                 <button
@@ -1877,8 +1988,8 @@ function App() {
                   isLoading
                     ? "px-5 py-2 rounded-2xl bg-red-500/80 text-white text-sm font-medium hover:bg-red-500 transition"
                     : isTyping
-                    ? "px-5 py-2 rounded-2xl bg-white/50 text-white/25 text-sm font-medium"
-                    : "px-5 py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
+                      ? "px-5 py-2 rounded-2xl bg-white/50 text-white/25 text-sm font-medium"
+                      : "px-5 py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
                 }
               >
                 {isLoading ? "Отменить" : "Отправить"}
@@ -1887,37 +1998,38 @@ function App() {
           </div>
         </footer>
       </motion.section>
-        <AnimatePresence>
-          {showSplash && (
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 z-[99999] flex items-center justify-center pointer-events-none"
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 z-[99999] flex items-center justify-center pointer-events-none"
+              initial={{
+                opacity: 0,
+                scale: 0.92,
+                y: 12,
+              }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                scale: 0.94,
+                y: -8,
+              }}
+              transition={{
+                duration: 0.35,
+                ease: "easeOut",
+              }}
+              className="w-[180px] h-[180px] rounded-[32px] border border-white/10 bg-black/75 backdrop-blur-3xl shadow-2xl flex flex-col items-center justify-center"
             >
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  scale: 0.92,
-                  y: 12,
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  y: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.94,
-                  y: -8,
-                }}
-                transition={{
-                  duration: 0.35,
-                  ease: "easeOut",
-                }}
-                className="w-[180px] h-[180px] rounded-[32px] border border-white/10 bg-black/75 backdrop-blur-3xl shadow-2xl flex flex-col items-center justify-center"
-              >
+              <div className="text-center">
                 <motion.div
                   animate={{
                     scale: [1, 1.04, 1],
@@ -1931,28 +2043,34 @@ function App() {
                 >
                   Aivex
                 </motion.div>
+                {splashMode === "update" && (
+                  <div className="mt-3 text-sm text-white/45">
+                    Обновляюсь...
+                  </div>
+                )}
+              </div>
 
-                <div className="flex gap-1.5 mt-5">
-                  {[0, 1, 2].map((i) => (
-                    <motion.div
-                      key={i}
-                      animate={{
-                        opacity: [0.3, 1, 0.3],
-                        y: [0, -4, 0],
-                      }}
-                      transition={{
-                        duration: 0.8,
-                        repeat: Infinity,
-                        delay: i * 0.15,
-                      }}
-                      className="w-2.5 h-2.5 rounded-full bg-white/75"
-                    />
-                  ))}
-                </div>
-              </motion.div>
+              <div className="flex gap-1.5 mt-5">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    animate={{
+                      opacity: [0.3, 1, 0.3],
+                      y: [0, -4, 0],
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      repeat: Infinity,
+                      delay: i * 0.15,
+                    }}
+                    className="w-2.5 h-2.5 rounded-full bg-white/75"
+                  />
+                ))}
+              </div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
