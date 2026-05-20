@@ -37,7 +37,7 @@ function MessageBubble({
             : "w-fit max-w-[88%] rounded-[20px] rounded-tl-md border border-white/10 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
         }
       >
-        <div className="text-sm leading-relaxed text-white/90 prose prose-invert break-words max-w-none">
+        <div className="markdown-content text-sm leading-7 text-white/90 prose prose-invert break-words max-w-none prose-p:my-3 prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-headings:mt-5 prose-headings:mb-3">
           {item.type === "audio-status" ? (
             <div className="flex items-center gap-2 text-white/60">
               <Loader2 size={15} className="animate-spin" />

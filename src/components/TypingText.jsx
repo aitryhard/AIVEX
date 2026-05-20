@@ -32,7 +32,8 @@ export default function TypingText({
     }, 45);
 
     return () => clearInterval(interval);
-  }, [text, onComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text]);
 
   return renderMarkdown(
     displayed,

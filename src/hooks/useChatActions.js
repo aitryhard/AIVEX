@@ -58,7 +58,6 @@ export function useChatActions({
 
     const displayMessage = userMessage || "";
 
-    setIsTyping(true);
     setIsLoading(false);
 
     setMessages((prev) => [
@@ -133,21 +132,21 @@ export function useChatActions({
         return;
       }
 
-      setIsLoading(false);
+        setIsLoading(false);
 
-      await new Promise((resolve) => setTimeout(resolve, 900));
+        await new Promise((resolve) => setTimeout(resolve, 900));
 
-      setIsTyping(true);
+        setIsTyping(true);
 
-      setMessages((prev) => [
+        setMessages((prev) => [
         ...prev,
         {
-          role: "ai",
-          text: data.response,
-          time: getTime(),
-          animate: true,
+            role: "ai",
+            text: data.response,
+            time: getTime(),
+            animate: true,
         },
-      ]);
+        ]);
 
       setClipboardImages([]);
     } catch (error) {
