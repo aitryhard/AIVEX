@@ -14,6 +14,10 @@ build/
 dist/
 release
 build
+backend/build/
+backend/dist/
+backend/**/*.pkg
+backend/**/*.exe
 
 # pyinstaller
 *.spec
