@@ -1,0 +1,1 @@
+export const MAX_CHAT_RESPONSE_LENGTH = 8000;

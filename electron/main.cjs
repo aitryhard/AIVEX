@@ -141,7 +141,7 @@ function createWindow() {
       contextIsolation: true,
     },
   });
-
+  
   if (isDev) {
     mainWindow.loadURL("http://localhost:5173");
   } else {
