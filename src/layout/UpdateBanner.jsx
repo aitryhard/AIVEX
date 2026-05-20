@@ -18,9 +18,18 @@ function UpdateBanner({
         >
           <span className="text-xs text-white/75">
             {updateStatus === "available"
-              ? "Доступно обновление..."
-              : "Обновление готово"}
+            ? "Доступно обновление"
+            : "Обновление готово"}
           </span>
+
+          {updateStatus === "available" && (
+            <button
+                onClick={() => window.aivexWindow.downloadUpdate()}
+                className="px-3 py-1.5 rounded-xl bg-white text-black text-xs font-medium hover:bg-white/90 transition"
+            >
+                Скачать
+            </button>
+        )}
 
           {updateStatus === "downloaded" && (
             <button

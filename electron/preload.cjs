@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld("aivexWindow", {
 
   getActivationStatus: () => ipcRenderer.invoke("activation:getStatus"),
 
+  downloadUpdate: () => ipcRenderer.send("update:download"),
+
   installUpdate: () => ipcRenderer.send("update:install"),
 
   saveTextFile: (content) => ipcRenderer.invoke("file:saveText", content),

@@ -18,7 +18,7 @@ const isDev = !app.isPackaged;
 
 const ACTIVATION_SERVER = "https://server-activation-06sn.onrender.com";
 
-autoUpdater.autoDownload = true;
+autoUpdater.autoDownload = false;
 
 let backendProcess = null;
 let mainWindow = null;
@@ -125,7 +125,7 @@ function stopBackend() {
 }
 
 function createWindow() {
-  mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
     width: 430,
     height: 760,
     minWidth: 380,
@@ -134,19 +134,32 @@ function createWindow() {
     transparent: true,
     alwaysOnTop: true,
     resizable: true,
+    skipTaskbar: false,
+    focusable: true,
     backgroundColor: "#00000000",
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       nodeIntegration: false,
       contextIsolation: true,
     },
   });
-  
+
   if (isDev) {
     mainWindow.loadURL("http://localhost:5173");
   } else {
     mainWindow.loadFile(path.join(app.getAppPath(), "dist", "index.html"));
   }
+  mainWindow.show();
+  mainWindow.setAlwaysOnTop(true);
+  mainWindow.moveTop();
+}
+
+function enforceAlwaysOnTop() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+
+  mainWindow.setAlwaysOnTop(true);
+  mainWindow.moveTop();
 }
 
 app.whenReady().then(async () => {
@@ -205,6 +218,10 @@ autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
 
 autoUpdater.logger = require("electron-log");
+
+ipcMain.on("update:download", () => {
+  autoUpdater.downloadUpdate();
+});
 
 ipcMain.on("update:install", () => {
   autoUpdater.quitAndInstall();

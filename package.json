@@ -1,7 +1,7 @@
 {
   "name": "aivex",
   "private": true,
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -92,7 +92,8 @@
       "installerHeaderIcon": "build/icon.ico",
       "deleteAppDataOnUninstall": false,
       "installerHeader": "build/nsis/installerHeader.bmp",
-      "installerSidebar": "build/nsis/installerSidebar.bmp"
+      "installerSidebar": "build/nsis/installerSidebar.bmp",
+      "differentialPackage": false
     }
   }
 }
