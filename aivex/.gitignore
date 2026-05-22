@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# python
+.venv
+__pycache__
+
+# env
+.env
+backend/.env
+
+# builds
+build/
+dist/
+release
+build
+backend/build/
+backend/dist/
+backend/**/*.pkg
+backend/**/*.exe
+
+# pyinstaller
+*.spec
+
+# logs
+npm-debug.log*
+
+# vscode
+.vscode
+
+release
+release/
+*.exe

@@ -1,0 +1,101 @@
+{
+  "name": "aivex",
+  "private": true,
+  "version": "1.0.9",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dist": "npm run build && electron-builder",
+    "dev": "vite",
+    "build": "vite build",
+    "electron": "wait-on http://localhost:5173 && electron .",
+    "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\""
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.3",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.16.0",
+    "node-machine-id": "^1.1.12",
+    "react": "^19.2.6",
+    "react-colorful": "^5.7.0",
+    "react-dom": "^19.2.6",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.1",
+    "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "electron": "^42.1.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "vite": "^8.0.12",
+    "wait-on": "^9.0.10"
+  },
+  "build": {
+    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "icon": "build/icon.ico",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "aitryhard",
+        "repo": "AIVEX"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "backend/dist/aivex-backend.exe",
+        "to": "backend/aivex-backend.exe"
+      },
+      {
+        "from": "backend/.env",
+        "to": "backend/.env"
+      },
+      {
+        "from": "backend/ffmpeg",
+        "to": "backend/ffmpeg"
+      }
+    ],
+    "appId": "com.aivex.app",
+    "productName": "Aivex",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aivex",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "differentialPackage": false
+    }
+  }
+}
