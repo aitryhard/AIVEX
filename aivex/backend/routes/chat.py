@@ -54,12 +54,15 @@ async def _chat(payload: ChatRequest):
 
     conversation_messages.append({"role": "user", "content": user_content})
 
+    print(f"[CHAT] model={payload.model} images={len(payload.images)} provider=openai")
+
     completion = openai_client.chat.completions.create(
-        model="openai/gpt-4o-mini",
+        model=payload.model,
         messages=conversation_messages,
         extra_headers={
             "HTTP-Referer": "http://localhost:5173",
             "X-OpenRouter-Title": "Aivex",
+            "X-OpenRouter-Provider": "openai",
         },
         max_tokens=4096,
     )

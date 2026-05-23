@@ -8,6 +8,7 @@ const {
   dialog,
   desktopCapturer,
   session,
+  screen,
 } = require("electron");
 const fs = require("fs");
 const path = require("path");
@@ -459,6 +460,36 @@ ipcMain.handle("backend:restart", async () => {
   stopBackend();
   await startBackend();
   return { restarted: true };
+});
+
+/* РАЗМЕР ОКНА */
+
+ipcMain.handle("window:resize", (_event, width, height) => {
+  const win = BrowserWindow.getFocusedWindow() || mainWindow;
+  if (!win || win.isDestroyed()) return;
+  win.setSize(width, height);
+  win.center();
+});
+
+ipcMain.handle("window:resetSize", () => {
+  const win = BrowserWindow.getFocusedWindow() || mainWindow;
+  if (!win || win.isDestroyed()) return;
+  win.setSize(430, 760);
+  win.center();
+});
+
+ipcMain.handle("screen:getSize", () => {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  return primaryDisplay.workAreaSize;
+});
+
+ipcMain.handle("screen:capture", async () => {
+  const sources = await desktopCapturer.getSources({
+    types: ["screen"],
+    thumbnailSize: { width: 800, height: 600 },
+  });
+  if (!sources.length) return null;
+  return sources[0].thumbnail.toDataURL();
 });
 
 /* ОБЩЕЕ */

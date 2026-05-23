@@ -15,6 +15,7 @@ import UpdateBanner from "./layout/UpdateBanner";
 import ActivationScreen from "./layout/ActivationScreen";
 import DragOverlay from "./layout/DragOverlay";
 import MainShell from "./layout/MainShell";
+import ScreenPeekView from "./layout/ScreenPeekView";
 
 import { ChatProvider } from "./contexts/ChatContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
@@ -75,6 +76,16 @@ function App() {
         <SettingsProvider value={settingsContextValue}>
           <ProfileProvider value={profileContextValue}>
             <DragOverlay isDragging={isDragging} />
+
+            {chatContextValue.isScreenPeeking && (
+              <ScreenPeekView
+                backendOnline={backendOnline}
+                analysis={chatContextValue.screenPeekAnalysis}
+                isAnalyzing={chatContextValue.screenPeekAnalyzing}
+                error={chatContextValue.screenPeekError}
+                onStop={chatContextValue.stopScreenPeek}
+              />
+            )}
 
             <motion.section
               initial={{ opacity: 0 }}
