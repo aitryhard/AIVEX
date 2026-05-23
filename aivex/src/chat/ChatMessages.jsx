@@ -19,7 +19,7 @@ function ChatMessages({ renderMarkdown }) {
   const [cleared, setCleared] = useState(false);
   const prevLengthRef = useRef(messages.length);
 
-  const hasUserMessages = messages.some((m) => m.role === "user");
+  const hasOnlyStartMessages = messages.every((m) => START_MESSAGES.includes(m.text));
   const currentStart = messages.find((m) => START_MESSAGES.includes(m.text));
   const showStart = currentStart || (messages.length === 0 && !cleared ? { role: "ai", text: startMessage, time: "" } : null);
 
@@ -57,7 +57,7 @@ function ChatMessages({ renderMarkdown }) {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showStart && !hasUserMessages && (
+        {showStart && hasOnlyStartMessages && (
           <motion.div
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
