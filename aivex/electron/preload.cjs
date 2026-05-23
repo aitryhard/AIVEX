@@ -60,4 +60,10 @@ contextBridge.exposeInMainWorld("aivexWindow", {
   resetWindowSize: () => ipcRenderer.invoke("window:resetSize"),
   getScreenSize: () => ipcRenderer.invoke("screen:getSize"),
   captureScreen: () => ipcRenderer.invoke("screen:capture"),
+  getSubscription: () => ipcRenderer.invoke("subscription:getStatus"),
+  getAlwaysOnTop: () => ipcRenderer.invoke("window:getAlwaysOnTop"),
+  setAlwaysOnTop: (value) => ipcRenderer.invoke("window:setAlwaysOnTop", value),
+  getDeviceId: () => ipcRenderer.invoke("device:getId"),
+  openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
+  createPayment: (tier) => ipcRenderer.invoke("payment:create", tier),
 });

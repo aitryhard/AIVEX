@@ -13,7 +13,9 @@ function FooterInput() {
     whisperReady, whisperLoading,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
   } = useChat();
-  const { uiSettings } = useSettings();
+  const { uiSettings, currentTier } = useSettings();
+  const isFree = currentTier === "free";
+  const screenPeekAllowed = currentTier === "premium";
 
   return (
     <footer className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 via-black/25 to-transparent pointer-events-none">
@@ -67,6 +69,8 @@ function FooterInput() {
         <textarea
           ref={messageInputRef}
           onPaste={(e) => {
+            if (isFree) return;
+
             const items = Array.from(e.clipboardData.items);
 
             const imageItems = items.filter((item) =>
@@ -126,41 +130,44 @@ function FooterInput() {
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-3">
             <button
-              disabled={isLoading || isTyping}
+              disabled={isLoading || isTyping || isFree}
               onClick={() => imageInputRef.current?.click()}
               className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/60"
+              title={isFree ? "Изображения недоступны на Free" : "Прикрепить изображение"}
             >
               <ImagePlus size={15} />
             </button>
 
             <button
-              disabled={(isLoading || isTyping) && !isRecording}
+              disabled={(isLoading || isTyping || isFree) && !isRecording}
               onClick={
                 isRecording
                   ? stopDesktopAudioRecording
-                  : startDesktopAudioRecording
+                  : isFree ? undefined : startDesktopAudioRecording
               }
               className={
                 isRecording
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/80 border border-red-400/30 text-white hover:bg-red-500 transition"
-                  : whisperLoading || isLoading || isTyping
+                  : whisperLoading || isLoading || isTyping || isFree
                     ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30 cursor-not-allowed"
                     : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
               }
               title={
                 isRecording
                   ? "Остановить запись"
-                  : whisperLoading
-                    ? "Загрузка модели распознавания..."
-                    : "Записать аудио рабочего стола"
+                  : isFree
+                    ? "Аудио недоступно на Free"
+                    : whisperLoading
+                      ? "Загрузка модели распознавания..."
+                      : "Записать аудио рабочего стола"
               }
             >
               <AudioLines size={15} />
             </button>
 
             <button
-              disabled={isLoading || isTyping}
-              onClick={isScreenPeeking ? stopScreenPeek : startScreenPeek}
+              disabled={isLoading || isTyping || !screenPeekAllowed}
+              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed ? startScreenPeek : undefined}
               className={
                 isScreenPeeking
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/80 border border-emerald-400/30 text-white hover:bg-emerald-500 transition"
@@ -169,7 +176,9 @@ function FooterInput() {
               title={
                 isScreenPeeking
                   ? "Остановить показ экрана"
-                  : "Показать экран AI"
+                  : screenPeekAllowed
+                    ? "Показать экран AI"
+                    : "Screen Peek доступен только на Premium"
               }
             >
               <Monitor size={15} />

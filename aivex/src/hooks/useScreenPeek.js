@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from "react";
 import { API_URL } from "../services/config";
 import { getTime } from "../utils/getTime";
+import { getDeviceId } from "../services/chatapi";
 
 const CAPTURE_INTERVAL = 5000;
 
@@ -23,6 +24,7 @@ export function useScreenPeek({ setMessages }) {
     setError("");
 
     try {
+      const device_id = await getDeviceId();
       const res = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -34,6 +36,7 @@ export function useScreenPeek({ setMessages }) {
           custom_prompt:
             "Ты видишь скриншот экрана пользователя. Определи, есть ли на экране вопрос, задание или упражнение. Если есть — ответь на него. Если нет — ответь ровно одним словом: __NO_TASK__. Не здоровайся, не добавляй лишнего.",
           history: [],
+          device_id,
         }),
         signal: controller.signal,
       });
@@ -48,6 +51,11 @@ export function useScreenPeek({ setMessages }) {
 
       const data = await res.json();
       if (controller.signal.aborted) return;
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
 
       const text = data.response;
       if (text === "__NO_TASK__") {

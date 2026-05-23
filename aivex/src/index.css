@@ -270,3 +270,21 @@ body.screen-peek-active {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+@keyframes bounce-arrow-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes bounce-arrow-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+.animate-bounce-arrow-up {
+  animation: bounce-arrow-up 1.2s ease-in-out infinite;
+}
+
+.animate-bounce-arrow-down {
+  animation: bounce-arrow-down 1.2s ease-in-out infinite;
+}

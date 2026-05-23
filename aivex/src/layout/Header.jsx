@@ -2,9 +2,13 @@ import {
   Minus,
   Square,
   X,
+  Pin,
   SlidersHorizontal,
+  CreditCard,
+  Pencil,
 } from "lucide-react";
 
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { DEFAULT_PROFILES } from "../constants/defaultProfiles";
@@ -14,19 +18,50 @@ import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
   const { clearChat } = useChat();
-  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen } = useSettings();
+  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, subscriptionOpen, setSubscriptionOpen, currentTier } = useSettings();
+  const FREE_PROFILES = ["Quick", "Detailed"];
+
   const {
     profile, setProfile,
     customProfiles,
     profileMenu, setProfileMenu,
     profileRef,
     deleteCustomProfile,
+    startEditProfile,
     setProfileCreatorOpen,
   } = useProfile();
 
+  const [pinned, setPinned] = useState(true);
+
+  useEffect(() => {
+    if (!window.aivexWindow) return;
+    window.aivexWindow.getAlwaysOnTop().then(setPinned);
+  }, []);
+
+  function togglePin() {
+    const next = !pinned;
+    setPinned(next);
+    window.aivexWindow?.setAlwaysOnTop(next);
+  }
+
+  function handleProfileClick(name) {
+    if (currentTier === "free" && !FREE_PROFILES.includes(name)) return;
+    setProfile(name);
+    setProfileMenu(false);
+  }
+
   return (
     <>
-      <div className="h-8 flex items-center justify-end px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable">
+      <div className="h-8 flex items-center justify-between px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable">
+        <div className="flex items-center no-drag">
+          <button
+            onClick={togglePin}
+            className={`w-8 h-6.5 rounded-lg flex items-center justify-center transition ${pinned ? "text-white/70 hover:text-white" : "text-white/25 hover:text-white/50"}`}
+          >
+            <Pin size={14} strokeWidth={pinned ? 2.5 : 1.5} />
+          </button>
+        </div>
+
         <div className="flex items-center gap-2 no-drag">
           <button
             onClick={() => window.aivexWindow?.minimize()}
@@ -54,6 +89,7 @@ function Header({ backendOnline }) {
       <header
         onMouseDown={() => {
           setSettingsOpen(false);
+          setSubscriptionOpen(false);
           setProfileMenu(false);
           setProfileCreatorOpen(false);
           setThemeCreatorOpen(false);
@@ -78,10 +114,25 @@ function Header({ backendOnline }) {
           <button
             onMouseDown={(e) => {
               e.stopPropagation();
+              setSubscriptionOpen((prev) => !prev);
+              setSettingsOpen(false);
+              setProfileMenu(false);
+              setProfileCreatorOpen(false);
+              setThemeCreatorOpen(false);
+            }}
+            className={`no-drag w-9 h-9 rounded-2xl border transition backdrop-blur-xl flex items-center justify-center ${subscriptionOpen ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400" : "bg-white/10 border-white/10 text-white/80 hover:bg-white/15 hover:text-white"}`}
+          >
+            <CreditCard strokeWidth={1.8} size={15} />
+          </button>
+
+          <button
+            onMouseDown={(e) => {
+              e.stopPropagation();
               setSettingsOpen((prev) => !prev);
               setProfileMenu(false);
               setProfileCreatorOpen(false);
               setThemeCreatorOpen(false);
+              setSubscriptionOpen(false);
             }}
             className="no-drag w-9 h-9 rounded-2xl bg-white/10 border border-white/10 text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl flex items-center justify-center"
           >
@@ -89,6 +140,7 @@ function Header({ backendOnline }) {
           </button>
 
           <button
+            onMouseDown={() => setSubscriptionOpen(false)}
             onClick={clearChat}
             className="no-drag px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-xs text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl"
           >
@@ -101,6 +153,7 @@ function Header({ backendOnline }) {
                 e.stopPropagation();
                 setProfileMenu((prev) => !prev);
                 setSettingsOpen(false);
+                setSubscriptionOpen(false);
                 setProfileCreatorOpen(false);
                 setThemeCreatorOpen(false);
               }}
@@ -113,12 +166,12 @@ function Header({ backendOnline }) {
               {profileMenu && (
                 <motion.div
                   ref={profileRef}
-                  style={panelAccentStyle}
-                  initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                  initial={{ opacity: 0, y: -10, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.97 }}
                   transition={{ duration: 0.16, ease: "easeOut" }}
-                  className="absolute right-0 mt-2 w-44 rounded-2xl border border-white/10 bg-[#0f0f10]/95 backdrop-blur-2xl shadow-2xl overflow-hidden z-50"
+                  className="absolute right-0 mt-2 w-48 rounded-2xl border overflow-hidden z-50"
+                  style={panelAccentStyle}
                 >
                   {[
                     ...DEFAULT_PROFILES,
@@ -126,67 +179,82 @@ function Header({ backendOnline }) {
                       name: item.name,
                       desc: "Пользовательский профиль",
                     })),
-                  ].map((item) => (
-                    <div key={item.name} className="relative w-full">
-                      <button
-                        onClick={() => {
-                          setProfile(item.name);
-                          setProfileMenu(false);
-                        }}
-                        className={
-                          profile === item.name
-                            ? "w-full px-4 py-3 text-left bg-white/15 text-white"
-                            : "w-full px-4 py-3 text-left text-white/70 hover:bg-white/10 hover:text-white transition"
-                        }
-                      >
-                        <div>
-                          <div className="text-sm font-medium">
-                            {item.name}
-                          </div>
-
-                          <div
-                            className={
-                              profile === item.name
-                                ? "text-[11px] text-white/60 mt-1 leading-tight"
-                                : "text-[11px] text-white/35 mt-1 leading-tight"
-                            }
-                          >
-                            {item.desc}
-                          </div>
-                        </div>
-                      </button>
-
-                      {customProfiles.some(
-                        (p) => p.name === item.name,
-                      ) && (
+                  ].map((item) => {
+                    const locked = currentTier === "free" && !FREE_PROFILES.includes(item.name);
+                    return (
+                      <div key={item.name} className="relative w-full">
                         <button
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-
-                            deleteCustomProfile(item.name);
-                          }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-white/25 hover:text-red-300 hover:bg-red-500/10 transition flex items-center justify-center text-[14px] leading-none"
+                          onClick={() => handleProfileClick(item.name)}
+                          className={
+                            profile === item.name
+                              ? "w-full px-4 py-3 pr-12 text-left bg-white/[0.06] text-white"
+                              : locked
+                                ? "w-full px-4 py-3 pr-12 text-left text-white/20 cursor-not-allowed"
+                                : "w-full px-4 py-3 pr-12 text-left text-white/60 hover:bg-white/[0.03] hover:text-white/80 transition"
+                          }
                         >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                          <div>
+                            <div className="text-sm font-medium">
+                              {item.name}
+                            </div>
 
-                  <button
-                    onClick={() => {
-                      setProfileMenu(false);
-                      setProfileCreatorOpen(true);
-                    }}
-                    className="w-full px-4 py-3 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white transition border-t border-white/10"
-                  >
-                    + Создать профиль
-                  </button>
+                            <div
+                              className={
+                                profile === item.name
+                                  ? "text-[11px] text-white/50 mt-0.5 leading-tight"
+                                  : "text-[11px] text-white/25 mt-0.5 leading-tight"
+                              }
+                            >
+                              {item.desc}
+                            </div>
+                          </div>
+                        </button>
+
+                        {customProfiles.some(
+                          (p) => p.name === item.name,
+                        ) && (
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-0.5">
+                            <button
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                setProfileMenu(false);
+                                const found = customProfiles.find((p) => p.name === item.name);
+                                if (found) startEditProfile(found);
+                              }}
+                              className="w-5 h-5 rounded-full text-white/10 hover:text-white/40 hover:bg-white/[0.06] transition flex items-center justify-center"
+                            >
+                              <Pencil size={10} />
+                            </button>
+                            <button
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                deleteCustomProfile(item.name);
+                              }}
+                              className="w-5 h-5 rounded-full text-white/15 hover:text-red-300 hover:bg-red-500/10 transition flex items-center justify-center text-[12px] leading-none"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {currentTier === "premium" && (
+                    <button
+                      onClick={() => {
+                        setProfileMenu(false);
+                        setProfileCreatorOpen(true);
+                      }}
+                      className="w-full px-4 py-3 pr-4 text-left text-sm text-white/50 hover:bg-white/[0.03] hover:text-white/70 transition border-t border-white/[0.06]"
+                    >
+                      + Создать профиль
+                    </button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

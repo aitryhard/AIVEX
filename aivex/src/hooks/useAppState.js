@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { START_MESSAGES } from "../constants/startMessages";
 import { DEFAULT_UI_SETTINGS } from "../constants/defaultUiSettings";
 import { STORAGE_KEYS } from "../constants/storageKeys";
+import { THEME_PRESETS } from "../constants/themePresets";
 
 import { useBackendStatus } from "./useBackendStatus";
 import { useActivation } from "./useActivation";
@@ -66,10 +67,14 @@ export function useAppState() {
     name: "",
     length: "standard",
     thinking: "standard",
+    prompt: "",
   });
+  const [editingProfile, setEditingProfile] = useState(null);
 
   const [activeColorTarget, setActiveColorTarget] = useState("panelColor");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [subscriptionOpen, setSubscriptionOpen] = useState(false);
+  const [currentTier, setCurrentTier] = useState("free");
   const [isDragging, setIsDragging] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
@@ -89,6 +94,7 @@ export function useAppState() {
   const imageInputRef = useRef(null);
   const chatEndRef = useRef(null);
   const settingsRef = useRef(null);
+  const subscriptionRef = useRef(null);
   const profileRef = useRef(null);
 
   const { panelStyle, aiBubbleStyle, userBubbleStyle, panelAccentStyle } =
@@ -110,7 +116,7 @@ export function useAppState() {
     setSettingsOpen,
   });
 
-  const { deleteCustomProfile, createCustomProfile } = useProfileActions({
+  const { deleteCustomProfile, createCustomProfile, updateCustomProfile, startEditProfile, closeProfileCreator } = useProfileActions({
     profile,
     setProfile,
     customProfiles,
@@ -118,6 +124,8 @@ export function useAppState() {
     newProfile,
     setNewProfile,
     setProfileCreatorOpen,
+    editingProfile,
+    setEditingProfile,
   });
 
   const clearChat = useClearChat({
@@ -143,6 +151,7 @@ export function useAppState() {
       setClipboardImages,
       customProfiles,
       profile,
+      currentTier,
     });
 
   const {
@@ -180,6 +189,51 @@ export function useAppState() {
     setClipboardImages,
   });
 
+  const tierInitialisedRef = useRef(false);
+
+  useEffect(() => {
+    function fetchTier() {
+      if (!window.aivexWindow) return Promise.resolve();
+      return window.aivexWindow.getSubscription().then((sub) => {
+        if (sub?.tier) setCurrentTier(sub.tier);
+      }).catch(() => {});
+    }
+
+    fetchTier().finally(() => { tierInitialisedRef.current = true; });
+
+    const interval = setInterval(fetchTier, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!tierInitialisedRef.current) return;
+    if (currentTier !== "free") return;
+
+    const freeProfiles = ["Quick", "Detailed"];
+    const freeThemes = ["Midnight", "AMOLED", "Slime"];
+
+    setProfile((prev) => {
+      if (freeProfiles.includes(prev)) return prev;
+      return "Quick";
+    });
+
+    setUiSettings((prev) => {
+      const match = THEME_PRESETS.find(
+        (t) =>
+          t.panelColor === prev.panelColor &&
+          t.aiColor === prev.aiColor &&
+          t.userColor === prev.userColor,
+      );
+      if (match && !freeThemes.includes(match.name)) {
+        return { ...prev, ...THEME_PRESETS[0] };
+      }
+      return prev;
+    });
+
+    setCustomProfiles([]);
+    setCustomThemes([]);
+  }, [currentTier]);
+
   const {
     isActive: isScreenPeeking,
     lastAnalysis: screenPeekAnalysis,
@@ -212,6 +266,8 @@ export function useAppState() {
     customThemes, setCustomThemes,
     applyThemePreset, createCustomTheme, deleteCustomTheme, resetUiSettings,
     settingsOpen, setSettingsOpen,
+    subscriptionOpen, setSubscriptionOpen,
+    currentTier,
     activeColorTarget, setActiveColorTarget,
     themeCreatorOpen, setThemeCreatorOpen,
     newThemeName, setNewThemeName,
@@ -223,8 +279,9 @@ export function useAppState() {
     customProfiles, setCustomProfiles,
     profileMenu, setProfileMenu,
     profileCreatorOpen, setProfileCreatorOpen,
-    deleteCustomProfile, createCustomProfile,
+    deleteCustomProfile, createCustomProfile, updateCustomProfile, startEditProfile, closeProfileCreator,
     newProfile, setNewProfile,
+    editingProfile, setEditingProfile,
     profileRef,
   };
 
@@ -235,7 +292,9 @@ export function useAppState() {
     updateStatus,
     isDragging, setIsDragging,
     setClipboardImages,
-    settingsRef,
+    settingsRef, subscriptionRef,
+    subscriptionOpen, setSubscriptionOpen,
+    currentTier, setCurrentTier,
     chatContextValue,
     settingsContextValue,
     profileContextValue,

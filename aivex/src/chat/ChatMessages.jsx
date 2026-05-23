@@ -7,15 +7,11 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
 import { START_MESSAGES } from "../constants/startMessages";
 
-function getRandomStartMessage() {
-  return START_MESSAGES[Math.floor(Math.random() * START_MESSAGES.length)];
-}
-
 function ChatMessages({ renderMarkdown }) {
   const { messages, isLoading, chatEndRef } = useChat();
   const { setSettingsOpen } = useSettings();
   const { setProfileMenu, setProfileCreatorOpen } = useProfile();
-  const [startMessage] = useState(() => getRandomStartMessage());
+  const [startMessage] = useState(() => START_MESSAGES[Math.floor(Math.random() * START_MESSAGES.length)]);
   const [cleared, setCleared] = useState(false);
   const prevLengthRef = useRef(messages.length);
 

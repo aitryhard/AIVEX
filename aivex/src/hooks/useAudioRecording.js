@@ -34,7 +34,7 @@ export function useAudioRecording({ setMessages, setIsLoading }) {
     const audioStatusId = activeAudioStatusIdRef.current;
 
     const blob = new Blob(recordedChunksRef.current, {
-        type: "audio/webm",
+        type: "video/webm",
     });
 
     stream.getTracks().forEach((track) => track.stop());

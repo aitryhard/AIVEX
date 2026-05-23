@@ -15,3 +15,4 @@ class ChatRequest(BaseModel):
     history: List[HistoryMessage] = []
     custom_prompt: str | None = None
     model: str = "openai/gpt-4o-mini"
+    device_id: str = ""

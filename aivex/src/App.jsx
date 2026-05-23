@@ -9,8 +9,10 @@ import Header from "./layout/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SplashScreen from "./layout/SplashScreen";
 import SettingsPanel from "./layout/SettingsPanel";
+import SubscriptionPanel from "./layout/SubscriptionPanel";
 import ThemeCreatorPanel from "./layout/ThemeCreatorPanel";
 import ProfileCreatorPanel from "./layout/ProfileCreatorPanel";
+import ServerErrorPanel from "./layout/ServerErrorPanel";
 import UpdateBanner from "./layout/UpdateBanner";
 import ActivationScreen from "./layout/ActivationScreen";
 import DragOverlay from "./layout/DragOverlay";
@@ -31,7 +33,9 @@ function App() {
     updateStatus,
     isDragging, setIsDragging,
     setClipboardImages,
-    settingsRef,
+    settingsRef, subscriptionRef,
+    subscriptionOpen, setSubscriptionOpen,
+    currentTier,
     chatContextValue,
     settingsContextValue,
     profileContextValue,
@@ -58,7 +62,7 @@ function App() {
     };
   }, []);
 
-  if (activationStatus && !activationStatus.allowed) {
+  if (activationStatus && !activationStatus.allowed && activationStatus.status !== "server_error") {
     return (
       <ActivationScreen
         activationStatus={activationStatus}
@@ -96,9 +100,15 @@ function App() {
             >
               <Header backendOnline={backendOnline} />
 
-              {restartInfo && (
+              {restartInfo && !restartInfo.fatal && (
                 <div className="px-5 py-2 bg-amber-500/15 border-b border-amber-500/20 text-xs text-amber-300/80 text-center">
                   Бэкенд перезапускается ({restartInfo.attempt}/{restartInfo.max})…
+                </div>
+              )}
+
+              {restartInfo?.fatal && (
+                <div className="px-5 py-2 bg-red-500/20 border-b border-red-500/30 text-xs text-red-300/90 text-center">
+                  Не удалось запустить бэкенд. Перезапустите приложение.
                 </div>
               )}
 
@@ -110,10 +120,21 @@ function App() {
               />
 
               <SettingsPanel ref={settingsRef} />
+              <SubscriptionPanel
+                ref={subscriptionRef}
+                open={subscriptionOpen}
+                onClose={() => setSubscriptionOpen(false)}
+                currentTier={currentTier}
+              />
 
               <ThemeCreatorPanel />
 
               <ProfileCreatorPanel />
+
+              <ServerErrorPanel
+                activationStatus={activationStatus}
+                setActivationStatus={setActivationStatus}
+              />
 
               <ErrorBoundary>
                 <ChatMessages renderMarkdown={renderMarkdown} />

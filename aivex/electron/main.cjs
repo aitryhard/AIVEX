@@ -31,6 +31,9 @@ const ACTIVATION_CACHE_TTL = 30000;
 
 let backendStartTime = 0;
 let backendStarting = false;
+let backendRestartCount = 0;
+let backendRestartTimer = null;
+const MAX_BACKEND_RESTART = 5;
 let isQuitting = false;
 
 /* Функция для проверки активации приложения с кэшированием на 30 секунд. */
@@ -162,6 +165,13 @@ async function startBackend() {
 
   console.log(`Backend: запуск из ${backendPath}`);
 
+  clearTimeout(backendRestartTimer);
+
+  backendRestartTimer = setTimeout(() => {
+    backendRestartCount = 0;
+    console.log("Backend: счётчик перезапусков сброшен (прожил 30с)");
+  }, 30000);
+
   backendProcess = spawn(spawnCommand, spawnArgs, spawnOptions);
 
   let stderrData = "";
@@ -204,9 +214,26 @@ async function startBackend() {
 
     if (isQuitting || code === 0) return;
 
+    /* Если процесс прожил меньше 10 секунд — считаем это ошибкой */
+
+    if (uptime < 10000) {
+      backendRestartCount++;
+    }
+
+    if (backendRestartCount >= MAX_BACKEND_RESTART) {
+      console.log(`Backend: превышен лимит перезапусков (${MAX_BACKEND_RESTART}), останавливаю`);
+
+      mainWindow?.webContents.send("backend:restarting", {
+        attempt: backendRestartCount,
+        max: MAX_BACKEND_RESTART,
+        fatal: true,
+      });
+      return;
+    }
+
     mainWindow?.webContents.send("backend:restarting", {
-      attempt: 1,
-      max: 5,
+      attempt: backendRestartCount,
+      max: MAX_BACKEND_RESTART,
     });
   });
 
@@ -235,8 +262,8 @@ function createWindow() {
     mainWindow = new BrowserWindow({
     width: 430,
     height: 760,
-    minWidth: 380,
-    minHeight: 520,
+    minWidth: 430,
+    minHeight: 760,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -249,6 +276,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.cjs"),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: true,
     },
   });
 
@@ -447,7 +475,7 @@ ipcMain.handle("clipboard:getImage", () => {
 ipcMain.handle("activation:getStatus", async () => {
   currentActivation = await checkActivation();
 
-  if (currentActivation.allowed && !backendProcess && !backendStarting) {
+  if (currentActivation.allowed && !backendProcess && !backendStarting && backendRestartCount < MAX_BACKEND_RESTART) {
     startBackend();
   }
 
@@ -478,6 +506,16 @@ ipcMain.handle("window:resetSize", () => {
   win.center();
 });
 
+ipcMain.handle("window:getAlwaysOnTop", () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return true;
+  return mainWindow.isAlwaysOnTop();
+});
+
+ipcMain.handle("window:setAlwaysOnTop", (_event, value) => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.setAlwaysOnTop(value);
+});
+
 ipcMain.handle("screen:getSize", () => {
   const primaryDisplay = screen.getPrimaryDisplay();
   return primaryDisplay.workAreaSize;
@@ -496,6 +534,51 @@ ipcMain.handle("screen:capture", async () => {
 
 ipcMain.handle("app:getVersion", () => {
   return app.getVersion();
+});
+
+ipcMain.handle("device:getId", () => {
+  return machineIdSync();
+});
+
+ipcMain.handle("shell:openExternal", async (_event, url) => {
+  try {
+    await shell.openExternal(url);
+  } catch (err) {
+    console.error("shell:openExternal error:", err);
+  }
+});
+
+/* ПОДПИСКА */
+
+ipcMain.handle("subscription:getStatus", async () => {
+  try {
+    const deviceId = machineIdSync();
+    const response = await fetch(
+      `${ACTIVATION_SERVER}/subscription/by-device/${deviceId}`,
+      { signal: AbortSignal.timeout(10000) },
+    );
+    return await response.json();
+  } catch {
+    return { tier: "free", is_active: false };
+  }
+});
+
+ipcMain.handle("payment:create", async (_event, tier) => {
+  try {
+    const deviceId = machineIdSync();
+    const response = await fetch(
+      `${ACTIVATION_SERVER}/payment/create`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_id: deviceId, tier }),
+        signal: AbortSignal.timeout(15000),
+      },
+    );
+    return await response.json();
+  } catch {
+    return { error: "server_unreachable" };
+  }
 });
 
 app.on("before-quit", () => {
