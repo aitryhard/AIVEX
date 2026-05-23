@@ -14,3 +14,4 @@ class ChatRequest(BaseModel):
     images: list[str] = []
     history: List[HistoryMessage] = []
     custom_prompt: str | None = None
+    model: str = "openai/gpt-4o-mini"

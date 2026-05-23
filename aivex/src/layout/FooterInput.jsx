@@ -1,4 +1,4 @@
-import { ImagePlus, AudioLines } from "lucide-react";
+import { ImagePlus, AudioLines, Monitor } from "lucide-react";
 import { useChat } from "../contexts/ChatContext";
 import { useSettings } from "../contexts/SettingsContext";
 
@@ -11,6 +11,7 @@ function FooterInput() {
     sendMessage, cancelRequest,
     startDesktopAudioRecording, stopDesktopAudioRecording,
     whisperReady, whisperLoading,
+    isScreenPeeking, startScreenPeek, stopScreenPeek,
   } = useChat();
   const { uiSettings } = useSettings();
 
@@ -155,6 +156,23 @@ function FooterInput() {
               }
             >
               <AudioLines size={15} />
+            </button>
+
+            <button
+              disabled={isLoading || isTyping}
+              onClick={isScreenPeeking ? stopScreenPeek : startScreenPeek}
+              className={
+                isScreenPeeking
+                  ? "w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/80 border border-emerald-400/30 text-white hover:bg-emerald-500 transition"
+                  : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/60"
+              }
+              title={
+                isScreenPeeking
+                  ? "Остановить показ экрана"
+                  : "Показать экран AI"
+              }
+            >
+              <Monitor size={15} />
             </button>
 
             <button

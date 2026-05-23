@@ -55,4 +55,9 @@ contextBridge.exposeInMainWorld("aivexWindow", {
   },
 
   completeMinimize: () => ipcRenderer.send("window:complete-minimize"),
+
+  resizeWindow: (width, height) => ipcRenderer.invoke("window:resize", width, height),
+  resetWindowSize: () => ipcRenderer.invoke("window:resetSize"),
+  getScreenSize: () => ipcRenderer.invoke("screen:getSize"),
+  captureScreen: () => ipcRenderer.invoke("screen:capture"),
 });

@@ -261,3 +261,12 @@ body {
   animation: window-minimize 0.12s ease-in forwards;
   pointer-events: none;
 }
+
+body.screen-peek-active #root section {
+  display: none !important;
+}
+
+body.screen-peek-active {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}

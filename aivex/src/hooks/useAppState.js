@@ -21,6 +21,7 @@ import { useProfileActions } from "./useProfileActions";
 import { useClearChat } from "./useClearChat";
 import { usePanelStyles } from "./usePanelStyles";
 import { useWhisperStatus } from "./useWhisperStatus";
+import { useScreenPeek } from "./useScreenPeek";
 
 function getRandomStartMessage() {
   return START_MESSAGES[Math.floor(Math.random() * START_MESSAGES.length)];
@@ -179,6 +180,15 @@ export function useAppState() {
     setClipboardImages,
   });
 
+  const {
+    isActive: isScreenPeeking,
+    lastAnalysis: screenPeekAnalysis,
+    isAnalyzing: screenPeekAnalyzing,
+    error: screenPeekError,
+    start: startScreenPeek,
+    stop: stopScreenPeek,
+  } = useScreenPeek({ setMessages });
+
   const chatContextValue = {
     messages, setMessages,
     isLoading, setIsLoading,
@@ -192,6 +202,8 @@ export function useAppState() {
     isRecording, startDesktopAudioRecording, stopDesktopAudioRecording,
     whisperReady, whisperLoading,
     autoClipboard, setAutoClipboard,
+    isScreenPeeking, startScreenPeek, stopScreenPeek,
+    screenPeekAnalysis, screenPeekAnalyzing, screenPeekError,
   };
 
   const settingsContextValue = {
