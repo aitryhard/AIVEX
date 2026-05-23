@@ -20,7 +20,8 @@ backend/**/*.pkg
 backend/**/*.exe
 
 # pyinstaller
-*.spec
+backend/build/
+backend/**/*.pkg
 
 # logs
 npm-debug.log*
