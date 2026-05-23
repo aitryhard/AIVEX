@@ -1,11 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MessageBubble from "./MessageBubble";
 import { useChat } from "../contexts/ChatContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
 import { START_MESSAGES } from "../constants/startMessages";
+
+function TypingDots() {
+  return (
+    <div className="flex items-center gap-1.5 py-1">
+      <span className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+      <span className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+      <span className="w-2 h-2 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+    </div>
+  );
+}
 
 function ChatMessages({ renderMarkdown }) {
   const { messages, isLoading, chatEndRef } = useChat();
@@ -73,11 +82,11 @@ function ChatMessages({ renderMarkdown }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="w-fit rounded-[28px] rounded-tl-md bg-white/10 border border-white/10 px-4 py-2"
+            className="w-fit rounded-[28px] rounded-tl-md bg-white/10 border border-white/10 px-4 py-3"
           >
-            <div className="flex items-center gap-2 text-sm text-white/60">
-              <Loader2 size={15} className="animate-spin" />
-              <span>Aivex думает...</span>
+            <div className="flex items-center gap-3 text-sm text-white/60">
+              <TypingDots />
+              <span className="text-white/40">Aivex думает</span>
             </div>
           </motion.div>
         )}

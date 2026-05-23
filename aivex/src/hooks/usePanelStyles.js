@@ -12,11 +12,13 @@ export function usePanelStyles(uiSettings) {
       },
 
       aiBubbleStyle: {
-        backgroundColor: `${uiSettings.aiColor}12`,
+        backgroundColor: `${uiSettings.aiColor}0d`,
+        borderColor: `${uiSettings.aiColor}18`,
       },
 
       userBubbleStyle: {
-        backgroundColor: `${uiSettings.userColor}26`,
+        backgroundColor: `${uiSettings.userColor}22`,
+        borderColor: `${uiSettings.userColor}30`,
       },
 
       panelAccentStyle: {
