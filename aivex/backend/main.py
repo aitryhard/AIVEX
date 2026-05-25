@@ -1,7 +1,10 @@
 import threading
 import logging
+import os
+import sys
 from logging.handlers import RotatingFileHandler
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import config
 
@@ -13,7 +16,11 @@ from routes.chat import router as chat_router
 from routes.audio import router as audio_router
 from whisper_service import preload_whisper
 
-log_path = config.resource_path("aivex-backend.log")
+log_dir = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+log_path = log_dir / "aivex-backend.log"
+log_dir = Path(log_path).parent
+if not log_dir.exists():
+    log_dir.mkdir(parents=True, exist_ok=True)
 handler = RotatingFileHandler(log_path, maxBytes=5*1024*1024, backupCount=3)
 logging.basicConfig(
     handlers=[handler],
@@ -50,7 +57,6 @@ app.include_router(audio_router)
 
 if __name__ == "__main__":
     import uvicorn
-    import sys
 
     logger.info(f"Aivex backend v1.1.3 starting on 127.0.0.1:8000")
     sys.stdout = config.LogWriter(logger, logging.INFO)
