@@ -207,8 +207,14 @@ export function useAppState() {
 
     fetchTier();
 
-    const interval = setInterval(fetchTier, 30000);
-    return () => clearInterval(interval);
+    function onFocus() { fetchTier(); }
+    window.addEventListener("focus", onFocus);
+
+    const interval = setInterval(fetchTier, 10000);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
 
   useEffect(() => {
