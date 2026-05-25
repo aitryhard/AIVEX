@@ -128,15 +128,13 @@ async function startBackend() {
     ? path.join(__dirname, "..", "backend", "main.py")
     : path.join(process.resourcesPath, "backend", "aivex-backend.exe");
 
-  /* Убиваем старые процессы, которые могли зависнуть на порту 8000 */
+  /* Убиваем старый процесс бэкенда, если был */
 
-  try {
-    require("child_process").execSync(
-      "taskkill /f /im python.exe 2>nul & taskkill /f /im aivex-backend.exe 2>nul",
-      { stdio: "ignore" }
-    );
-  } catch {
-    /* если процесса нет — игнорируем */
+  if (backendProcess && backendProcess.pid) {
+    try {
+      process.kill(-backendProcess.pid, "SIGTERM");
+    } catch { /* уже завершён */ }
+    backendProcess = null;
   }
 
   /* Ждём чтобы порт освободился */
@@ -476,7 +474,7 @@ ipcMain.handle("activation:getStatus", async () => {
   currentActivation = await checkActivation();
 
   if (currentActivation.allowed && !backendProcess && !backendStarting && backendRestartCount < MAX_BACKEND_RESTART) {
-    startBackend();
+    await startBackend();
   }
 
   return currentActivation;

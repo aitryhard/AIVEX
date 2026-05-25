@@ -1,11 +1,33 @@
 import { useRef, useState, useCallback } from "react";
 import { API_URL } from "../services/config";
 import { getTime } from "../utils/getTime";
+import { generateId } from "../utils/generateId";
 import { getDeviceId } from "../services/chatapi";
+import { buildCustomPrompt } from "../utils/buildCustomPrompt";
 
-const CAPTURE_INTERVAL = 5000;
+const DEFAULT_INTERVAL = 10000;
+const SCREEN_PEEK_PROFILE = "Screen Peek";
 
-export function useScreenPeek({ setMessages }) {
+function hashDataUrl(dataUrl) {
+  return dataUrl ? dataUrl.slice(-200) : "";
+}
+
+function isNewTaskResponse(text) {
+  const lower = text.toLowerCase();
+  return (
+    !lower.includes("__no_task__") &&
+    !lower.includes("экран не изменился") &&
+    !lower.includes("скриншот не изменился") &&
+    !lower.includes("контент не изменился")
+  );
+}
+
+const SYSTEM_PROMPT_BASE =
+  "Ты видишь скриншот экрана пользователя. Определи, есть ли на экране вопрос, задание или упражнение. Если есть — ответь на него. Если контент на экране не изменился с предыдущего скриншота — ответь ровно одним словом: __NO_CHANGE__. Если контент изменился, но нового вопроса или задачи нет — ответь ровно одним словом: __NO_TASK__. Не здоровайся, не добавляй лишнего.";
+
+const DEFAULT_SCREEN_PEEK_CUSTOM_PROMPT = "";
+
+export function useScreenPeek({ setMessages, profile, customProfiles }) {
   const [isActive, setIsActive] = useState(false);
   const [lastAnalysis, setLastAnalysis] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -14,8 +36,25 @@ export function useScreenPeek({ setMessages }) {
   const intervalRef = useRef(null);
   const abortRef = useRef(null);
   const messageIdRef = useRef(null);
+  const lastHashRef = useRef("");
+  const analysisHistoryRef = useRef([]);
 
-  const analyzeFrame = useCallback(async (dataUrl) => {
+  const getActiveCustomProfile = useCallback(() => {
+    if (!Array.isArray(customProfiles)) return null;
+    return customProfiles.find((p) => p.name === profile) || null;
+  }, [customProfiles, profile]);
+
+  const getScreenPeekPrompt = useCallback(() => {
+    const custom = getActiveCustomProfile();
+    if (custom?.prompt) return custom.prompt;
+    if (custom) {
+      const built = buildCustomPrompt(custom);
+      if (built) return built + "\n\n" + SYSTEM_PROMPT_BASE;
+    }
+    return SYSTEM_PROMPT_BASE;
+  }, [getActiveCustomProfile]);
+
+  const analyzeFrame = useCallback(async (dataUrl, forceAnalyze) => {
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -23,19 +62,32 @@ export function useScreenPeek({ setMessages }) {
     setIsAnalyzing(true);
     setError("");
 
+    const currentHash = hashDataUrl(dataUrl);
+
+    if (!forceAnalyze && currentHash === lastHashRef.current) {
+      setIsAnalyzing(false);
+      return;
+    }
+    lastHashRef.current = currentHash;
+
     try {
       const device_id = await getDeviceId();
+      const screenPeekPrompt = getScreenPeekPrompt();
+      const history = analysisHistoryRef.current.slice(-6).map((msg) => ({
+        role: "assistant",
+        content: msg,
+      }));
+
       const res = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: "Проанализируй этот скриншот экрана.",
-          profile: "Tutor",
+          profile: profile || "Tutor",
           images: [dataUrl],
           model: "openai/gpt-4o",
-          custom_prompt:
-            "Ты видишь скриншот экрана пользователя. Определи, есть ли на экране вопрос, задание или упражнение. Если есть — ответь на него. Если нет — ответь ровно одним словом: __NO_TASK__. Не здоровайся, не добавляй лишнего.",
-          history: [],
+          custom_prompt: screenPeekPrompt,
+          history,
           device_id,
         }),
         signal: controller.signal,
@@ -44,8 +96,7 @@ export function useScreenPeek({ setMessages }) {
 
       if (!res.ok) {
         const body = await res.text().catch(() => "");
-        const msg = `Ошибка ${res.status}: ${body || res.statusText}`;
-        setError(msg);
+        setError(`Ошибка ${res.status}: ${body || res.statusText}`);
         return;
       }
 
@@ -58,11 +109,13 @@ export function useScreenPeek({ setMessages }) {
       }
 
       const text = data.response;
-      if (text === "__NO_TASK__") {
+      if (!isNewTaskResponse(text) || text === "__NO_CHANGE__") {
         setLastAnalysis("");
         return;
       }
       setLastAnalysis(text);
+      analysisHistoryRef.current.push(text);
+
       setMessages((prev) => {
         const id = messageIdRef.current;
         if (id && prev.some((m) => m.id === id)) {
@@ -70,7 +123,7 @@ export function useScreenPeek({ setMessages }) {
             m.id === id ? { ...m, text, time: getTime() } : m,
           );
         }
-        const newId = crypto.randomUUID();
+        const newId = generateId();
         messageIdRef.current = newId;
         return [
           ...prev,
@@ -90,13 +143,13 @@ export function useScreenPeek({ setMessages }) {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [setMessages]);
+  }, [setMessages, getScreenPeekPrompt, profile]);
 
-  const captureAndAnalyze = useCallback(async () => {
+  const captureAndAnalyze = useCallback(async (forceAnalyze) => {
     try {
       const dataUrl = await window.aivexWindow?.captureScreen();
       if (!dataUrl) return;
-      analyzeFrame(dataUrl);
+      analyzeFrame(dataUrl, forceAnalyze);
     } catch (err) {
       console.error("ScreenPeek capture error:", err);
     }
@@ -112,10 +165,13 @@ export function useScreenPeek({ setMessages }) {
       await window.aivexWindow?.resizeWindow(w, h);
       document.body.classList.add("screen-peek-active");
 
+      analysisHistoryRef.current = [];
+      lastHashRef.current = "";
+
       setIsActive(true);
 
-      captureAndAnalyze();
-      intervalRef.current = setInterval(captureAndAnalyze, CAPTURE_INTERVAL);
+      captureAndAnalyze(true);
+      intervalRef.current = setInterval(() => captureAndAnalyze(false), DEFAULT_INTERVAL);
     } catch (err) {
       console.error("ScreenPeek start error:", err);
       document.body.classList.remove("screen-peek-active");

@@ -7,13 +7,16 @@ const TIER_MODEL = {
   premium: "openai/gpt-4o",
 };
 
-let deviceIdPromise = null;
+let deviceIdCache = null;
 
 export function getDeviceId() {
-  if (!deviceIdPromise) {
-    deviceIdPromise = window.aivexWindow?.getDeviceId?.() ?? Promise.resolve("");
+  if (window.aivexWindow?.getDeviceId) {
+    if (!deviceIdCache) {
+      deviceIdCache = window.aivexWindow.getDeviceId();
+    }
+    return deviceIdCache;
   }
-  return deviceIdPromise;
+  return Promise.resolve("");
 }
 
 export async function sendChatRequest({

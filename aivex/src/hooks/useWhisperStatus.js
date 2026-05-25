@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { API_URL } from "../services/config";
 
 export function useWhisperStatus() {
-  const [status, setStatus] = useState({ whisperReady: false, whisperLoading: false });
+  const [status, setStatus] = useState({ whisperReady: false, whisperLoading: true });
 
   useEffect(() => {
     let cancelled = false;

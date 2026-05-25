@@ -185,7 +185,7 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
                       variants={cardVariants}
                       className={`relative rounded-2xl border p-4 transition-all duration-300 backdrop-blur-xl ${isBelow ? "border-white/[0.04]" : tier.accent} ${isCurrent ? "bg-white/[0.08]" : isBelow ? "bg-black/[0.18]" : "bg-white/[0.03] hover:bg-white/[0.05] hover:-translate-y-0.5"}`}
                     >
-                      {tier.badge && (
+                      {tier.badge && !isBelow && (
                         <span className="absolute -top-2 right-4 text-[10px] font-medium px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-xl">
                           {tier.badge}
                         </span>
@@ -257,7 +257,7 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
                           ) : isCurrent ? (
                             "Уже активно"
                           ) : isBelow ? (
-                            "Приобретите выше"
+                            "Недоступен"
                           ) : (
                             "Оформить"
                           )}

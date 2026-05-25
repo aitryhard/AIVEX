@@ -11,6 +11,16 @@ function ScreenPeekView({ backendOnline, analysis, isAnalyzing, error, onStop })
           <span
             className={`w-2 h-2 rounded-full ${backendOnline ? "bg-emerald-400" : "bg-red-400"}`}
           />
+          {!isAnalyzing && !error && (
+            <span className="ml-1 flex items-center gap-1.5 px-2.5 h-7 rounded-lg text-xs text-emerald-400/70 bg-emerald-400/10">
+              Наблюдение
+            </span>
+          )}
+          {isAnalyzing && (
+            <span className="ml-1 flex items-center gap-1.5 px-2.5 h-7 rounded-lg text-xs text-amber-400/70 bg-amber-400/10">
+              Анализ...
+            </span>
+          )}
           <button
             onClick={onStop}
             className="ml-1 flex items-center gap-1.5 px-2.5 h-7 rounded-lg text-xs text-white/35 hover:text-white hover:bg-white/10 transition"
@@ -49,14 +59,24 @@ function ScreenPeekView({ backendOnline, analysis, isAnalyzing, error, onStop })
           </p>
         )}
         {!error && analysis && (
-          <p className="text-sm text-white/85 leading-relaxed max-h-40 overflow-y-auto scrollbar-hide">
-            {analysis}
-          </p>
+          <div>
+            <div className="text-[10px] text-white/30 mb-1 font-medium uppercase tracking-wider">
+              Обнаружена задача
+            </div>
+            <p className="text-sm text-white/85 leading-relaxed max-h-40 overflow-y-auto scrollbar-hide">
+              {analysis}
+            </p>
+          </div>
         )}
         {!error && isAnalyzing && !analysis && (
           <div className="flex items-center gap-2 text-sm text-white/40">
             <Loader2 size={14} className="animate-spin" />
             Анализ экрана...
+          </div>
+        )}
+        {!error && !isAnalyzing && !analysis && (
+          <div className="text-sm text-white/30">
+            Сканирование экрана...
           </div>
         )}
       </div>

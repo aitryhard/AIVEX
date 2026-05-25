@@ -195,11 +195,14 @@ export function useAppState() {
     function fetchTier() {
       if (!window.aivexWindow) return Promise.resolve();
       return window.aivexWindow.getSubscription().then((sub) => {
-        if (sub?.tier) setCurrentTier(sub.tier);
+        if (sub?.tier) {
+          setCurrentTier(sub.tier);
+          tierInitialisedRef.current = true;
+        }
       }).catch(() => {});
     }
 
-    fetchTier().finally(() => { tierInitialisedRef.current = true; });
+    fetchTier();
 
     const interval = setInterval(fetchTier, 30000);
     return () => clearInterval(interval);
@@ -241,7 +244,7 @@ export function useAppState() {
     error: screenPeekError,
     start: startScreenPeek,
     stop: stopScreenPeek,
-  } = useScreenPeek({ setMessages });
+  } = useScreenPeek({ setMessages, profile, customProfiles });
 
   const chatContextValue = {
     messages, setMessages,

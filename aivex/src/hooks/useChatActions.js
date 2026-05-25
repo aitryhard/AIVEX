@@ -4,6 +4,7 @@ import { MAX_CHAT_RESPONSE_LENGTH } from "../constants/chatLimits";
 import { getTime } from "../utils/getTime";
 import { buildCustomPrompt } from "../utils/buildCustomPrompt";
 import { generateFilename } from "../utils/generateFilename";
+import { generateId } from "../utils/generateId";
 import { sendChatRequest } from "../services/chatapi";
 
 function getDailyCount() {
@@ -38,6 +39,7 @@ export function useChatActions({
   currentTier,
 }) {
   const abortControllerRef = useRef(null);
+  const sendInProgressRef = useRef(false);
   const [copiedCode, setCopiedCode] = useState("");
   const [copiedText, setCopiedText] = useState("");
 
@@ -73,7 +75,8 @@ export function useChatActions({
 
   async function sendMessage() {
     if (!activationStatus?.allowed) return;
-    if (isLoading || isTyping) return;
+    if (isLoading || isTyping || sendInProgressRef.current) return;
+    sendInProgressRef.current = true;
 
     if (currentTier === "free") {
       const daily = getDailyCount();
@@ -81,7 +84,7 @@ export function useChatActions({
         setMessages((prev) => [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             role: "ai",
             text: `Достигнут лимит ${DAILY_FREE_LIMIT} сообщений в день на Free-тарифе.`,
             time: new Date().toLocaleTimeString(),
@@ -107,7 +110,7 @@ export function useChatActions({
     setMessages((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: generateId(),
         role: "user",
         text: displayMessage,
         time: getTime(),
@@ -167,7 +170,7 @@ export function useChatActions({
         setMessages((prev) => [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             role: "ai",
             file: saveResult?.saved
               ? { path: saveResult.path, name: fileName + ".txt" }
@@ -192,7 +195,7 @@ export function useChatActions({
         setMessages((prev) => [
         ...prev,
         {
-            id: crypto.randomUUID(),
+            id: generateId(),
             role: "ai",
             text: data.response,
             time: getTime(),
@@ -212,7 +215,7 @@ export function useChatActions({
       setMessages((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           role: "ai",
           text: `Ошибка: ${error.message}`,
           time: getTime(),
@@ -220,6 +223,7 @@ export function useChatActions({
       ]);
     } finally {
       abortControllerRef.current = null;
+      sendInProgressRef.current = false;
     }
   }
 

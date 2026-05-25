@@ -1,3 +1,5 @@
+import { generateId } from "../utils/generateId";
+
 export function useProfileActions({
   profile,
   setProfile,
@@ -42,7 +44,7 @@ export function useProfileActions({
     const profileNumber = customProfiles.length + 1;
 
     const finalProfile = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: newProfile.name.trim() || `Профиль ${profileNumber}`,
       length: newProfile.length || "standard",
       thinking: newProfile.thinking || "standard",
