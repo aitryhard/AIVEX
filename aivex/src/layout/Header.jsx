@@ -4,7 +4,6 @@ import {
   X,
   Pin,
   SlidersHorizontal,
-  CreditCard,
   Pencil,
 } from "lucide-react";
 
@@ -18,7 +17,7 @@ import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
   const { clearChat } = useChat();
-  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, subscriptionOpen, setSubscriptionOpen, currentTier } = useSettings();
+  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
   const {
@@ -107,24 +106,11 @@ function Header({ backendOnline }) {
                 ? "ml-3 mt-[2px] w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(74,222,128,0.9)]"
                 : "ml-3 mt-[2px] w-2.5 h-2.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.9)]"
             }
+            title={backendOnline ? "Бэкенд подключён" : "Бэкенд отключён"}
           />
         </div>
 
         <div className="flex items-center gap-2 leading-none">
-          <button
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              setSubscriptionOpen((prev) => !prev);
-              setSettingsOpen(false);
-              setProfileMenu(false);
-              setProfileCreatorOpen(false);
-              setThemeCreatorOpen(false);
-            }}
-            className={`no-drag w-9 h-9 rounded-2xl border transition backdrop-blur-xl flex items-center justify-center ${subscriptionOpen ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400" : "bg-white/10 border-white/10 text-white/80 hover:bg-white/15 hover:text-white"}`}
-          >
-            <CreditCard strokeWidth={1.8} size={15} />
-          </button>
-
           <button
             onMouseDown={(e) => {
               e.stopPropagation();

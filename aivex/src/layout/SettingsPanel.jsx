@@ -19,6 +19,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
     activeColorTarget, setActiveColorTarget,
     appVersion,
     currentTier,
+    setSubscriptionOpen,
   } = useSettings();
   const { setProfileMenu, setProfileCreatorOpen } = useProfile();
 
@@ -256,6 +257,31 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
               >
                 Сбросить настройки
               </button>
+            </div>
+
+            <div className="border-t border-white/[0.06] pt-4 mt-4">
+              <h3 className="text-[11px] font-medium text-white/40 tracking-widest uppercase mb-3">Подписка</h3>
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-white/70 font-medium">
+                      {currentTier === "free" ? "Free" : currentTier === "pro" ? "Pro" : "Premium"}
+                    </div>
+                    <div className="text-[10px] text-white/30 mt-0.5">
+                      {currentTier === "free" ? "Бесплатный тариф" : "Активна"}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setTimeout(() => setSubscriptionOpen(true), 200);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-xs text-white/70 hover:text-white transition"
+                  >
+                    {currentTier === "free" ? "Оформить" : "Управлять"}
+                  </button>
+                </div>
+              </div>
             </div>
 
             <button
