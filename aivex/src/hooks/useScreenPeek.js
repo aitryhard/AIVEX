@@ -62,18 +62,6 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
   const lastHashRef = useRef("");
   const analysisHistoryRef = useRef([]);
 
-  useEffect(() => {
-    if (!window.aivexWindow?.onScreenPeekToggle) return;
-    const cleanup = window.aivexWindow.onScreenPeekToggle(() => {
-      if (isActive) {
-        stop();
-      } else {
-        start();
-      }
-    });
-    return cleanup;
-  }, [isActive, start, stop]);
-
   const sendAnalysisToChat = useCallback((text) => {
     if (!text) return;
     setMessages((prev) => [
@@ -226,6 +214,18 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
     document.body.classList.remove("screen-peek-active");
     await window.aivexWindow?.resetWindowSize();
   }, []);
+
+  useEffect(() => {
+    if (!window.aivexWindow?.onScreenPeekToggle) return;
+    const cleanup = window.aivexWindow.onScreenPeekToggle(() => {
+      if (isActive) {
+        stop();
+      } else {
+        start();
+      }
+    });
+    return cleanup;
+  }, [isActive, start, stop]);
 
   return { isActive, lastAnalysis, analysisHistory, isAnalyzing, error, start, stop, sendAnalysisToChat };
 }
