@@ -18,15 +18,6 @@ export default defineConfig({
     },
   ],
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          ui: ['framer-motion', 'lucide-react'],
-          markdown: ['react-markdown', 'react-syntax-highlighter', 'remark-gfm', 'rehype-raw'],
-        },
-      },
-    },
     chunkSizeWarningLimit: 300,
   },
 })
