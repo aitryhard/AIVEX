@@ -20,6 +20,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
     appVersion,
     currentTier,
     subscriptionExpiresAt,
+    deviceId,
     setSubscriptionOpen,
   } = useSettings();
   const { setProfileMenu, setProfileCreatorOpen } = useProfile();
@@ -305,6 +306,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
 
             <div className="text-[11px] text-white/20 mt-1 text-center">
               Aivex v{appVersion}
+              {deviceId && <span className="block text-[10px] text-white/10">ID: {deviceId}...</span>}
             </div>
           </div>
           </div>

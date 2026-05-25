@@ -37,6 +37,14 @@ export function useAppState() {
   const { showSplash, setShowSplash, splashMode, setSplashMode } =
     useSplashScreen();
 
+  const [deviceId, setDeviceId] = useState("");
+
+  useEffect(() => {
+    window.aivexWindow?.getDeviceId().then((id) => {
+      if (id) setDeviceId(id.slice(0, 8));
+    }).catch(() => {});
+  }, []);
+
   const [customProfiles, setCustomProfiles] = usePersistentState(
     STORAGE_KEYS.CUSTOM_PROFILES,
     [],
@@ -281,6 +289,7 @@ export function useAppState() {
     subscriptionOpen, setSubscriptionOpen,
     currentTier,
     subscriptionExpiresAt,
+    deviceId,
     activeColorTarget, setActiveColorTarget,
     themeCreatorOpen, setThemeCreatorOpen,
     newThemeName, setNewThemeName,
