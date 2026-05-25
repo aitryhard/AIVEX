@@ -74,10 +74,6 @@
       {
         "from": "backend/.env.example",
         "to": "backend/.env.example"
-      },
-      {
-        "from": "backend/ffmpeg/ffmpeg.exe",
-        "to": "backend/ffmpeg/ffmpeg.exe"
       }
     ],
     "appId": "com.aivex.app",
