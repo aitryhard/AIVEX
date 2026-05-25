@@ -13,7 +13,7 @@ def preload_whisper():
 
     try:
         import whisper
-        model = whisper.load_model("tiny")
+        model = whisper.load_model("base")
         model_loaded = True
     except Exception:
         model_loaded = False
@@ -42,8 +42,11 @@ async def transcribe_audio(file):
             temp_path,
             language="ru",
             fp16=False,
-            temperature=0,
-            condition_on_previous_text=True,
+            temperature=0.2,
+            compression_ratio_threshold=2.0,
+            logprob_threshold=-1.0,
+            no_speech_threshold=0.6,
+            condition_on_previous_text=False,
         )
 
         return {"text": result["text"]}
