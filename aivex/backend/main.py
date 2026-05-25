@@ -7,6 +7,8 @@ from pathlib import Path
 
 import config
 
+warnings.filterwarnings("ignore", message=".*on_event is deprecated.*")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
