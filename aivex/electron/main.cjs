@@ -251,18 +251,24 @@ async function startBackend() {
 function stopBackend() {
   if (!backendProcess) return;
 
+  const pid = backendProcess.pid;
+
   try {
-    backendProcess.kill("SIGTERM");
-    setTimeout(() => {
-      if (backendProcess) {
-        try { backendProcess.kill("SIGKILL"); } catch {}
-        backendProcess = null;
-      }
-    }, 5000);
+    backendProcess.kill();
   } catch (error) {
     console.log("Backend kill error:", error);
-    backendProcess = null;
   }
+
+  backendProcess = null;
+
+  /* На Windows SIGTERM часто не убивает процесс, дублируем taskkill по PID */
+
+  try {
+    require("child_process").execSync(
+      `taskkill /f /pid ${pid} 2>nul`,
+      { stdio: "ignore", timeout: 3000 }
+    );
+  } catch { /* уже завершён */ }
 }
 
 /* Создание главного окна приложения с заданными параметрами и загрузкой интерфейса. */
