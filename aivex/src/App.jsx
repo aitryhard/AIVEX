@@ -85,9 +85,11 @@ function App() {
               <ScreenPeekView
                 backendOnline={backendOnline}
                 analysis={chatContextValue.screenPeekAnalysis}
+                history={chatContextValue.screenPeekHistory}
                 isAnalyzing={chatContextValue.screenPeekAnalyzing}
                 error={chatContextValue.screenPeekError}
                 onStop={chatContextValue.stopScreenPeek}
+                onSendToChat={chatContextValue.sendAnalysisToChat}
               />
             )}
 

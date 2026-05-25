@@ -257,10 +257,12 @@ export function useAppState() {
   const {
     isActive: isScreenPeeking,
     lastAnalysis: screenPeekAnalysis,
+    analysisHistory: screenPeekHistory,
     isAnalyzing: screenPeekAnalyzing,
     error: screenPeekError,
     start: startScreenPeek,
     stop: stopScreenPeek,
+    sendAnalysisToChat,
   } = useScreenPeek({ setMessages, profile, customProfiles });
 
   const chatContextValue = {
@@ -277,7 +279,7 @@ export function useAppState() {
     whisperReady, whisperLoading, whisperFailed,
     autoClipboard, setAutoClipboard,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
-    screenPeekAnalysis, screenPeekAnalyzing, screenPeekError,
+    screenPeekAnalysis, screenPeekHistory, screenPeekAnalyzing, screenPeekError, sendAnalysisToChat,
   };
 
   const settingsContextValue = {

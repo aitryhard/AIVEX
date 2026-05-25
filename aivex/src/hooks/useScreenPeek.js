@@ -30,6 +30,7 @@ const DEFAULT_SCREEN_PEEK_CUSTOM_PROMPT = "";
 export function useScreenPeek({ setMessages, profile, customProfiles }) {
   const [isActive, setIsActive] = useState(false);
   const [lastAnalysis, setLastAnalysis] = useState("");
+  const [analysisHistory, setAnalysisHistory] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState("");
 
@@ -38,6 +39,20 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
   const messageIdRef = useRef(null);
   const lastHashRef = useRef("");
   const analysisHistoryRef = useRef([]);
+
+  const sendAnalysisToChat = useCallback((text) => {
+    if (!text) return;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: generateId(),
+        role: "ai",
+        type: "screen-peek",
+        text,
+        time: getTime(),
+      },
+    ]);
+  }, [setMessages]);
 
   const getActiveCustomProfile = useCallback(() => {
     if (!Array.isArray(customProfiles)) return null;
@@ -115,27 +130,7 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
       }
       setLastAnalysis(text);
       analysisHistoryRef.current.push(text);
-
-      setMessages((prev) => {
-        const id = messageIdRef.current;
-        if (id && prev.some((m) => m.id === id)) {
-          return prev.map((m) =>
-            m.id === id ? { ...m, text, time: getTime() } : m,
-          );
-        }
-        const newId = generateId();
-        messageIdRef.current = newId;
-        return [
-          ...prev,
-          {
-            id: newId,
-            role: "ai",
-            type: "screen-peek",
-            text,
-            time: getTime(),
-          },
-        ];
-      });
+      setAnalysisHistory([...analysisHistoryRef.current]);
     } catch (err) {
       if (err.name === "AbortError") return;
       console.error("ScreenPeek analysis error:", err);
@@ -194,5 +189,5 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
     await window.aivexWindow?.resetWindowSize();
   }, []);
 
-  return { isActive, lastAnalysis, isAnalyzing, error, start, stop };
+  return { isActive, lastAnalysis, analysisHistory, isAnalyzing, error, start, stop, sendAnalysisToChat };
 }
