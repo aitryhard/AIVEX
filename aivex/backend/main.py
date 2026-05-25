@@ -1,6 +1,7 @@
 import threading
 import logging
 from logging.handlers import RotatingFileHandler
+from contextlib import asynccontextmanager
 
 import config
 
@@ -22,7 +23,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger("aivex")
 
-app = FastAPI(title="Aivex API")
+
+@asynccontextmanager
+async def lifespan(app):
+    logger.info("Backend starting...")
+    thread = threading.Thread(target=preload_whisper, daemon=True)
+    thread.start()
+    yield
+    logger.info("Backend shutting down...")
+
+
+app = FastAPI(title="Aivex API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,13 +46,6 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(chat_router)
 app.include_router(audio_router)
-
-
-@app.on_event("startup")
-async def startup():
-    logger.info("Backend starting...")
-    thread = threading.Thread(target=preload_whisper, daemon=True)
-    thread.start()
 
 
 if __name__ == "__main__":

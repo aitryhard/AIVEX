@@ -289,17 +289,6 @@ function createWindow() {
     },
   });
 
-  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        "Content-Security-Policy": [
-          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:8000 https://server-activation-06sn.onrender.com; font-src 'self' data:;",
-        ],
-      },
-    });
-  });
-
   if (isDev) {
     mainWindow.loadURL("http://localhost:5173");
   } else {
