@@ -65,6 +65,10 @@
         "to": "backend/.env"
       },
       {
+        "from": "backend/.env.example",
+        "to": "backend/.env.example"
+      },
+      {
         "from": "backend/ffmpeg",
         "to": "backend/ffmpeg"
       }
@@ -81,14 +85,13 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/icon.ico",
-      "publisherName": "Aivex"
+      "icon": "build/icon.ico"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
-      "allowElevation": false,
-      "allowToChangeInstallationDirectory": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Aivex",
@@ -96,7 +99,11 @@
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "deleteAppDataOnUninstall": false,
-      "differentialPackage": false
+      "differentialPackage": false,
+      "language": "1049",
+      "installerLanguages": ["ru_RU", "en_US"],
+      "uninstallDisplayName": "Aivex",
+      "warningsAsErrors": false
     }
   }
 }

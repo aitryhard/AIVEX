@@ -103,12 +103,18 @@ function App() {
               {restartInfo && !restartInfo.fatal && (
                 <div className="px-5 py-2 bg-amber-500/15 border-b border-amber-500/20 text-xs text-amber-300/80 text-center">
                   Бэкенд перезапускается ({restartInfo.attempt}/{restartInfo.max})…
+                  {restartInfo.error && (
+                    <span className="block text-[10px] text-amber-300/50 mt-0.5">{restartInfo.error}</span>
+                  )}
                 </div>
               )}
 
               {restartInfo?.fatal && (
                 <div className="px-5 py-2 bg-red-500/20 border-b border-red-500/30 text-xs text-red-300/90 text-center">
-                  Не удалось запустить бэкенд. Перезапустите приложение.
+                  Не удалось запустить бэкенд
+                  {restartInfo.error && (
+                    <span className="block text-[10px] text-red-300/50 mt-0.5">{restartInfo.error}</span>
+                  )}
                 </div>
               )}
 

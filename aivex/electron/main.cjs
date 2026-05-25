@@ -194,7 +194,11 @@ async function startBackend() {
   backendProcess.on("exit", (code) => {
     const uptime = Date.now() - backendStartTime;
 
+    const stderrSummary = stderrData
+      ? stderrData.split("\n").filter(l => l.trim()).slice(-3).join(" | ")
+      : "";
     console.log(`Backend [PID ${pid}]: завершён с кодом ${code}, прожил ${uptime}мс`);
+    console.log(`Backend STDERR: ${stderrSummary || "(пусто)"}`);
 
     if (stderrData) {
       console.log(`Backend [PID ${pid}] STDERR:\n${stderrData}`);
@@ -225,6 +229,7 @@ async function startBackend() {
         attempt: backendRestartCount,
         max: MAX_BACKEND_RESTART,
         fatal: true,
+        error: stderrSummary || `Exit code: ${code}, uptime: ${uptime}ms`,
       });
       return;
     }
@@ -232,6 +237,7 @@ async function startBackend() {
     mainWindow?.webContents.send("backend:restarting", {
       attempt: backendRestartCount,
       max: MAX_BACKEND_RESTART,
+      error: stderrSummary || `Exit code: ${code}, uptime: ${uptime}ms`,
     });
   });
 
