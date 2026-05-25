@@ -59,6 +59,11 @@ contextBridge.exposeInMainWorld("aivexWindow", {
     return () => ipcRenderer.removeListener("window:restored", callback);
   },
 
+  onScreenPeekToggle: (callback) => {
+    ipcRenderer.on("screenpeek:toggle", callback);
+    return () => ipcRenderer.removeListener("screenpeek:toggle", callback);
+  },
+
   completeMinimize: () => ipcRenderer.send("window:complete-minimize"),
 
   resizeWindow: (width, height) => ipcRenderer.invoke("window:resize", width, height),

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { API_URL } from "../services/config";
 import { getTime } from "../utils/getTime";
 import { generateId } from "../utils/generateId";
@@ -10,6 +10,28 @@ const SCREEN_PEEK_PROFILE = "Screen Peek";
 
 function hashDataUrl(dataUrl) {
   return dataUrl ? dataUrl.slice(-200) : "";
+}
+
+function isBlankScreenshot(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 32;
+      canvas.height = 24;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, 32, 24);
+      const imageData = ctx.getImageData(0, 0, 32, 24);
+      let total = 0;
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        total += (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+      }
+      const avg = total / (imageData.data.length / 4);
+      resolve(avg < 15);
+    };
+    img.onerror = () => resolve(false);
+    img.src = dataUrl;
+  });
 }
 
 function isNewTaskResponse(text) {
@@ -39,6 +61,18 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
   const messageIdRef = useRef(null);
   const lastHashRef = useRef("");
   const analysisHistoryRef = useRef([]);
+
+  useEffect(() => {
+    if (!window.aivexWindow?.onScreenPeekToggle) return;
+    const cleanup = window.aivexWindow.onScreenPeekToggle(() => {
+      if (isActive) {
+        stop();
+      } else {
+        start();
+      }
+    });
+    return cleanup;
+  }, [isActive, start, stop]);
 
   const sendAnalysisToChat = useCallback((text) => {
     if (!text) return;
@@ -144,6 +178,10 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
     try {
       const dataUrl = await window.aivexWindow?.captureScreen();
       if (!dataUrl) return;
+
+      const blank = await isBlankScreenshot(dataUrl);
+      if (blank) return;
+
       analyzeFrame(dataUrl, forceAnalyze);
     } catch (err) {
       console.error("ScreenPeek capture error:", err);

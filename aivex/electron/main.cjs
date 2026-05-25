@@ -9,6 +9,7 @@ const {
   desktopCapturer,
   session,
   screen,
+  globalShortcut,
 } = require("electron");
 const fs = require("fs");
 const path = require("path");
@@ -351,6 +352,14 @@ app.whenReady().then(async () => {
       console.log("Update check failed:", error);
     });
   }
+
+  /* Глобальные горячие клавиши */
+
+  globalShortcut.register("CommandOrControl+Shift+A", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("screenpeek:toggle");
+    }
+  });
 });
 
 autoUpdater.on("update-available", () => {
