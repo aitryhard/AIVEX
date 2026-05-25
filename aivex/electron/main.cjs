@@ -128,18 +128,18 @@ async function startBackend() {
     ? path.join(__dirname, "..", "backend", "main.py")
     : path.join(process.resourcesPath, "backend", "aivex-backend.exe");
 
-  /* Убиваем старый процесс бэкенда, если был */
+  /* Освобождаем порт 8000 — убиваем процесс который его занимает */
 
-  if (backendProcess && backendProcess.pid) {
-    try {
-      process.kill(-backendProcess.pid, "SIGTERM");
-    } catch { /* уже завершён */ }
-    backendProcess = null;
-  }
+  try {
+    require("child_process").execSync(
+      `for /f "tokens=5" %a in ('netstat -ano ^| find ":8000 " ^| find "LISTENING"') do taskkill /f /pid %a 2>nul`,
+      { stdio: "ignore", timeout: 5000 }
+    );
+  } catch { /* если порт свободен — игнорируем */ }
 
   /* Ждём чтобы порт освободился */
 
-  await new Promise((r) => setTimeout(r, 500));
+  await new Promise((r) => setTimeout(r, 1000));
 
   const spawnOptions = isDev
     ? {
