@@ -548,10 +548,23 @@ ipcMain.handle("screen:getSize", () => {
 ipcMain.handle("screen:capture", async () => {
   const sources = await desktopCapturer.getSources({
     types: ["screen"],
-    thumbnailSize: { width: 800, height: 600 },
+    thumbnailSize: { width: 1280, height: 720 },
   });
   if (!sources.length) return null;
-  return sources[0].thumbnail.toDataURL();
+
+  let img = sources[0].thumbnail;
+
+  /* Вырезаем центральную область (примерно 50% экрана) */
+
+  const w = img.getSize().width;
+  const h = img.getSize().height;
+  const cropW = Math.min(640, w);
+  const cropH = Math.min(480, h);
+  const x = Math.floor((w - cropW) / 2);
+  const y = Math.floor((h - cropH) / 2);
+  img = img.crop({ x, y, width: cropW, height: cropH });
+
+  return img.toDataURL({ format: 'jpeg', quality: 0.6 });
 });
 
 /* ОБЩЕЕ */
