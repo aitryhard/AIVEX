@@ -1,9 +1,8 @@
 import threading
 import logging
-import os
 import sys
+import warnings
 from logging.handlers import RotatingFileHandler
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 import config
@@ -16,11 +15,11 @@ from routes.chat import router as chat_router
 from routes.audio import router as audio_router
 from whisper_service import preload_whisper
 
+warnings.filterwarnings("ignore", message=".*on_event is deprecated.*")
+
 log_dir = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 log_path = log_dir / "aivex-backend.log"
-log_dir = Path(log_path).parent
-if not log_dir.exists():
-    log_dir.mkdir(parents=True, exist_ok=True)
+
 handler = RotatingFileHandler(log_path, maxBytes=5*1024*1024, backupCount=3)
 logging.basicConfig(
     handlers=[handler],
@@ -30,17 +29,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("aivex")
 
-
-@asynccontextmanager
-async def lifespan(app):
-    logger.info("Backend starting...")
-    thread = threading.Thread(target=preload_whisper, daemon=True)
-    thread.start()
-    yield
-    logger.info("Backend shutting down...")
-
-
-app = FastAPI(title="Aivex API", lifespan=lifespan)
+app = FastAPI(title="Aivex API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,17 +44,29 @@ app.include_router(chat_router)
 app.include_router(audio_router)
 
 
+@app.on_event("startup")
+async def startup():
+    logger.info("Backend starting...")
+    thread = threading.Thread(target=preload_whisper, daemon=True)
+    thread.start()
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    logger.info(f"Aivex backend v1.1.3 starting on 127.0.0.1:8000")
-    sys.stdout = config.LogWriter(logger, logging.INFO)
-    sys.stderr = config.LogWriter(logger, logging.ERROR)
+    try:
+        logger.info("Aivex backend v1.1.3 starting on 127.0.0.1:8000")
+        sys.stdout = config.LogWriter(logger, logging.INFO)
+        sys.stderr = config.LogWriter(logger, logging.ERROR)
 
-    uvicorn.run(
-        app,
-        host="127.0.0.1",
-        port=8000,
-        reload=False,
-        log_level="warning",
-    )
+        uvicorn.run(
+            app,
+            host="127.0.0.1",
+            port=8000,
+            reload=False,
+            log_level="warning",
+        )
+    except Exception as e:
+        logger.error(f"Failed to start: {e}", exc_info=True)
+        print(f"FATAL: {e}", file=sys.__stderr__)
+        sys.exit(1)
