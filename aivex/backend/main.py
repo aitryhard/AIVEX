@@ -56,8 +56,6 @@ if __name__ == "__main__":
 
     try:
         logger.info("Aivex backend v1.1.3 starting on 127.0.0.1:8000")
-        sys.stdout = config.LogWriter(logger, logging.INFO)
-        sys.stderr = config.LogWriter(logger, logging.ERROR)
 
         uvicorn.run(
             app,
@@ -65,8 +63,8 @@ if __name__ == "__main__":
             port=8000,
             reload=False,
             log_level="warning",
+            access_log=False,
         )
     except Exception as e:
         logger.error(f"Failed to start: {e}", exc_info=True)
-        print(f"FATAL: {e}", file=sys.__stderr__)
         sys.exit(1)
