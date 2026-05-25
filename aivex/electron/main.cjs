@@ -355,11 +355,15 @@ app.whenReady().then(async () => {
 
   /* Глобальные горячие клавиши */
 
-  globalShortcut.register("CommandOrControl+Shift+A", () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send("screenpeek:toggle");
-    }
-  });
+  try {
+    globalShortcut.register("CommandOrControl+Shift+A", () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("screenpeek:toggle");
+      }
+    });
+  } catch (e) {
+    console.log("Global shortcut error:", e);
+  }
 });
 
 autoUpdater.on("update-available", () => {
