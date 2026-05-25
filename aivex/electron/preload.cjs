@@ -18,6 +18,11 @@ contextBridge.exposeInMainWorld("aivexWindow", {
     return () => ipcRenderer.removeListener("update:available", callback);
   },
 
+  onUpdateProgress: (callback) => {
+    ipcRenderer.on("update:download-progress", (_event, progress) => callback(progress));
+    return () => ipcRenderer.removeListener("update:download-progress", callback);
+  },
+
   onUpdateDownloaded: (callback) => {
     ipcRenderer.on("update:downloaded", callback);
     return () => ipcRenderer.removeListener("update:downloaded", callback);

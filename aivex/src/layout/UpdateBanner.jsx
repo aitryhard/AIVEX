@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 function UpdateBanner({
   updateStatus,
+  downloadProgress,
   showSplash,
   setSplashMode,
   setShowSplash,
@@ -21,20 +22,28 @@ function UpdateBanner({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: -8 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="w-[180px] h-[180px] rounded-3xl border border-white/[0.06] backdrop-blur-2xl shadow-2xl flex flex-col items-center justify-center pointer-events-auto"
+            className="w-[200px] rounded-3xl border border-white/[0.06] backdrop-blur-2xl shadow-2xl flex flex-col items-center justify-center pointer-events-auto py-6 px-5"
             style={{ background: "rgba(12,12,14,0.96)" }}
           >
-            <div className="text-center">
-              <div className="text-[32px] tracking-tight font-['Space_Grotesk'] font-bold text-white">
-                Aivex
-              </div>
-
-              <div className="mt-3 text-sm text-white/45 leading-tight px-4">
-                {updateStatus === "available"
-                  ? "Доступно обновление"
-                  : "Обновление готово"}
-              </div>
+            <div className="text-[32px] tracking-tight font-['Space_Grotesk'] font-bold text-white">
+              Aivex
             </div>
+
+            <div className="mt-3 text-sm text-white/45 leading-tight px-4 text-center">
+              {updateStatus === "available" && "Доступно обновление"}
+              {updateStatus === "downloading" && downloadProgress && `Загрузка... ${downloadProgress.percent}%`}
+              {updateStatus === "downloading" && !downloadProgress && "Загрузка..."}
+              {updateStatus === "downloaded" && "Обновление готово"}
+            </div>
+
+            {updateStatus === "downloading" && downloadProgress && (
+              <div className="w-full mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-white/60 transition-all duration-300"
+                  style={{ width: `${downloadProgress.percent}%` }}
+                />
+              </div>
+            )}
 
             {updateStatus === "available" && (
               <button
@@ -43,6 +52,12 @@ function UpdateBanner({
               >
                 Скачать
               </button>
+            )}
+
+            {updateStatus === "downloading" && (
+              <div className="mt-4 px-4 py-1.5 rounded-xl bg-white/10 text-white/60 text-xs">
+                {downloadProgress ? `${downloadProgress.percent}%` : "..."}
+              </div>
             )}
 
             {updateStatus === "downloaded" && (

@@ -30,7 +30,7 @@ function App() {
     activationStatus, setActivationStatus,
     backendOnline, restartInfo,
     showSplash, setShowSplash, splashMode, setSplashMode,
-    updateStatus,
+    updateStatus, downloadProgress,
     isDragging, setIsDragging,
     setClipboardImages,
     settingsRef, subscriptionRef,
@@ -120,6 +120,7 @@ function App() {
 
               <UpdateBanner
                 updateStatus={updateStatus}
+                downloadProgress={downloadProgress}
                 showSplash={showSplash}
                 setSplashMode={setSplashMode}
                 setShowSplash={setShowSplash}

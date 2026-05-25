@@ -30,7 +30,7 @@ function getRandomStartMessage() {
 
 export function useAppState() {
   const appVersion = useAppVersion();
-  const updateStatus = useUpdater();
+  const { updateStatus, downloadProgress } = useUpdater();
   const { activationStatus, setActivationStatus } = useActivation();
   const { backendOnline, restartInfo } = useBackendStatus(activationStatus);
   const { whisperReady, whisperLoading, whisperFailed } = useWhisperStatus();
@@ -311,7 +311,7 @@ export function useAppState() {
     activationStatus, setActivationStatus,
     backendOnline, restartInfo,
     showSplash, setShowSplash, splashMode, setSplashMode,
-    updateStatus,
+    updateStatus, downloadProgress,
     isDragging, setIsDragging,
     setClipboardImages,
     settingsRef, subscriptionRef,

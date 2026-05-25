@@ -361,6 +361,15 @@ autoUpdater.on("update-downloaded", () => {
   mainWindow?.webContents.send("update:downloaded");
 });
 
+autoUpdater.on("download-progress", (progress) => {
+  mainWindow?.webContents.send("update:download-progress", {
+    percent: Math.round(progress.percent),
+    bytesPerSecond: progress.bytesPerSecond,
+    transferred: progress.transferred,
+    total: progress.total,
+  });
+});
+
 autoUpdater.on("error", (err) => {
   console.log("Updater error:", err);
 });
