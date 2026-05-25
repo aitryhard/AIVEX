@@ -75,6 +75,7 @@ export function useAppState() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [subscriptionOpen, setSubscriptionOpen] = useState(false);
   const [currentTier, setCurrentTier] = useState("free");
+  const [subscriptionExpiresAt, setSubscriptionExpiresAt] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
@@ -151,7 +152,8 @@ export function useAppState() {
       setClipboardImages,
       customProfiles,
       profile,
-      currentTier,
+    currentTier,
+    subscriptionExpiresAt,
     });
 
   const {
@@ -197,6 +199,7 @@ export function useAppState() {
       return window.aivexWindow.getSubscription().then((sub) => {
         if (sub?.tier) {
           setCurrentTier(sub.tier);
+          setSubscriptionExpiresAt(sub.expires_at || null);
           tierInitialisedRef.current = true;
         }
       }).catch(() => {});
@@ -298,6 +301,7 @@ export function useAppState() {
     settingsRef, subscriptionRef,
     subscriptionOpen, setSubscriptionOpen,
     currentTier, setCurrentTier,
+    subscriptionExpiresAt,
     chatContextValue,
     settingsContextValue,
     profileContextValue,

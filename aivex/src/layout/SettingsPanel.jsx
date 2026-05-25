@@ -19,6 +19,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
     activeColorTarget, setActiveColorTarget,
     appVersion,
     currentTier,
+    subscriptionExpiresAt,
     setSubscriptionOpen,
   } = useSettings();
   const { setProfileMenu, setProfileCreatorOpen } = useProfile();
@@ -268,7 +269,11 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                       {currentTier === "free" ? "Free" : currentTier === "pro" ? "Pro" : "Premium"}
                     </div>
                     <div className="text-[10px] text-white/30 mt-0.5">
-                      {currentTier === "free" ? "Бесплатный тариф" : "Активна"}
+                      {currentTier === "free"
+                        ? "Бесплатный тариф"
+                        : subscriptionExpiresAt
+                          ? `Действует до ${new Date(subscriptionExpiresAt).toLocaleDateString("ru-RU")}`
+                          : "Активна"}
                     </div>
                   </div>
                   <button
