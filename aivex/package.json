@@ -12,7 +12,10 @@
     "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\""
+    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\"",
+    "prepare": "husky",
+    "prepare": "husky"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
@@ -42,6 +45,8 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
     "vite": "^8.0.12",
     "wait-on": "^9.0.10"
@@ -110,5 +115,14 @@
       "uninstallDisplayName": "Aivex",
       "warningsAsErrors": false
     }
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "src/**/*.css": [
+      "prettier --write"
+    ]
   }
 }

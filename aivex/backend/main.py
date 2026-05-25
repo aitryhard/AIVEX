@@ -1,5 +1,6 @@
 import threading
 import logging
+from logging.handlers import RotatingFileHandler
 
 import config
 
@@ -11,8 +12,10 @@ from routes.chat import router as chat_router
 from routes.audio import router as audio_router
 from whisper_service import preload_whisper
 
+log_path = config.resource_path("aivex-backend.log")
+handler = RotatingFileHandler(log_path, maxBytes=5*1024*1024, backupCount=3)
 logging.basicConfig(
-    filename=config.resource_path("aivex-backend.log"),
+    handlers=[handler],
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
