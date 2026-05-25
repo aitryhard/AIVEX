@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { API_URL } from "../services/config";
 
 export function useWhisperStatus() {
-  const [status, setStatus] = useState({ whisperReady: false, whisperLoading: true });
+  const [status, setStatus] = useState({ whisperReady: false, whisperLoading: true, whisperFailed: false });
 
   useEffect(() => {
     let cancelled = false;
@@ -21,11 +21,12 @@ export function useWhisperStatus() {
           setStatus({
             whisperReady: data.loaded,
             whisperLoading: data.loading,
+            whisperFailed: !data.loaded && !data.loading,
           });
         }
       } catch {
         if (!cancelled) {
-          setStatus({ whisperReady: false, whisperLoading: false });
+          setStatus({ whisperReady: false, whisperLoading: false, whisperFailed: false });
         }
       } finally {
         clearTimeout(timer);

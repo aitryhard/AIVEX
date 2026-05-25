@@ -10,7 +10,7 @@ function FooterInput() {
     autoClipboard, setAutoClipboard,
     sendMessage, cancelRequest,
     startDesktopAudioRecording, stopDesktopAudioRecording,
-    whisperReady, whisperLoading,
+    whisperReady, whisperLoading, whisperFailed,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
   } = useChat();
   const { uiSettings, currentTier } = useSettings();
@@ -143,23 +143,27 @@ function FooterInput() {
               onClick={
                 isRecording
                   ? stopDesktopAudioRecording
-                  : isFree ? undefined : startDesktopAudioRecording
+                  : isFree || whisperFailed ? undefined : startDesktopAudioRecording
               }
               className={
                 isRecording
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/80 border border-red-400/30 text-white hover:bg-red-500 transition"
-                  : whisperLoading || isLoading || isTyping || isFree
-                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30 cursor-not-allowed"
-                    : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
+                  : whisperFailed
+                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/20 cursor-not-allowed"
+                    : whisperLoading || isLoading || isTyping || isFree
+                      ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30 cursor-not-allowed"
+                      : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
               }
               title={
                 isRecording
                   ? "Остановить запись"
                   : isFree
                     ? "Аудио недоступно на Free"
-                    : whisperLoading
-                      ? "Загрузка модели распознавания..."
-                      : "Записать аудио рабочего стола"
+                    : whisperFailed
+                      ? "Модель распознавания не загружена"
+                      : whisperLoading
+                        ? "Загрузка модели распознавания..."
+                        : "Записать аудио рабочего стола"
               }
             >
               <AudioLines size={15} />

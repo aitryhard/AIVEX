@@ -33,7 +33,7 @@ export function useAppState() {
   const updateStatus = useUpdater();
   const { activationStatus, setActivationStatus } = useActivation();
   const { backendOnline, restartInfo } = useBackendStatus(activationStatus);
-  const { whisperReady, whisperLoading } = useWhisperStatus();
+  const { whisperReady, whisperLoading, whisperFailed } = useWhisperStatus();
   const { showSplash, setShowSplash, splashMode, setSplashMode } =
     useSplashScreen();
 
@@ -260,7 +260,7 @@ export function useAppState() {
     clearChat,
     chatEndRef,
     isRecording, startDesktopAudioRecording, stopDesktopAudioRecording,
-    whisperReady, whisperLoading,
+    whisperReady, whisperLoading, whisperFailed,
     autoClipboard, setAutoClipboard,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
     screenPeekAnalysis, screenPeekAnalyzing, screenPeekError,
