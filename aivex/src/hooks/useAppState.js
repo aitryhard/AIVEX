@@ -274,6 +274,7 @@ export function useAppState() {
     settingsOpen, setSettingsOpen,
     subscriptionOpen, setSubscriptionOpen,
     currentTier,
+    subscriptionExpiresAt,
     activeColorTarget, setActiveColorTarget,
     themeCreatorOpen, setThemeCreatorOpen,
     newThemeName, setNewThemeName,
