@@ -12,7 +12,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['sympy', 'tensorboard', 'tensorflow', 'matplotlib'],
+    excludes=['sympy', 'tensorboard', 'tensorflow', 'matplotlib', 'pip', 'setuptools', 'wheel'],
     noarchive=False,
     optimize=2,
 )

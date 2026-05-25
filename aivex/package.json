@@ -70,10 +70,6 @@
       {
         "from": "backend/.env",
         "to": "backend/.env"
-      },
-      {
-        "from": "backend/.env.example",
-        "to": "backend/.env.example"
       }
     ],
     "appId": "com.aivex.app",
