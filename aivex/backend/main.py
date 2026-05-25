@@ -1,4 +1,5 @@
 import threading
+import logging
 
 import config
 
@@ -9,6 +10,14 @@ from routes.health import router as health_router
 from routes.chat import router as chat_router
 from routes.audio import router as audio_router
 from whisper_service import preload_whisper
+
+logging.basicConfig(
+    filename=config.resource_path("aivex-backend.log"),
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("aivex")
 
 app = FastAPI(title="Aivex API")
 
@@ -27,16 +36,23 @@ app.include_router(audio_router)
 
 @app.on_event("startup")
 async def startup():
+    logger.info("Backend starting...")
     thread = threading.Thread(target=preload_whisper, daemon=True)
     thread.start()
 
 
 if __name__ == "__main__":
     import uvicorn
+    import sys
+
+    logger.info(f"Aivex backend v1.1.3 starting on 127.0.0.1:8000")
+    sys.stdout = config.LogWriter(logger, logging.INFO)
+    sys.stderr = config.LogWriter(logger, logging.ERROR)
 
     uvicorn.run(
         app,
         host="127.0.0.1",
         port=8000,
         reload=False,
+        log_level="warning",
     )

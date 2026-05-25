@@ -15,7 +15,7 @@ def preload_whisper():
     model_loading = True
 
     try:
-        model = whisper.load_model("small")
+        model = whisper.load_model("tiny")
         model_loaded = True
     except Exception:
         model_loaded = False

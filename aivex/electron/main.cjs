@@ -253,11 +253,16 @@ function stopBackend() {
 
   try {
     backendProcess.kill("SIGTERM");
+    setTimeout(() => {
+      if (backendProcess) {
+        try { backendProcess.kill("SIGKILL"); } catch {}
+        backendProcess = null;
+      }
+    }, 5000);
   } catch (error) {
     console.log("Backend kill error:", error);
+    backendProcess = null;
   }
-
-  backendProcess = null;
 }
 
 /* Создание главного окна приложения с заданными параметрами и загрузкой интерфейса. */
@@ -282,6 +287,17 @@ function createWindow() {
       contextIsolation: true,
       webSecurity: true,
     },
+  });
+
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [
+          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:8000 https://server-activation-06sn.onrender.com; font-src 'self' data:;",
+        ],
+      },
+    });
   });
 
   if (isDev) {

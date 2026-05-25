@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -10,6 +11,20 @@ def resource_path(relative_path):
         return Path(sys._MEIPASS) / relative_path
 
     return Path(__file__).parent / relative_path
+
+
+class LogWriter:
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+        self.buffer = ""
+
+    def write(self, message):
+        if message.strip():
+            self.logger.log(self.level, message.strip())
+
+    def flush(self):
+        pass
 
 
 def env_path():
