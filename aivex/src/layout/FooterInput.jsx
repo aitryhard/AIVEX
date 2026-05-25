@@ -66,12 +66,10 @@ function FooterInput() {
           </div>
         )}
 
-        <textarea
-          ref={messageInputRef}
-          onPaste={(e) => {
-            if (isFree) return;
-
-            const items = Array.from(e.clipboardData.items);
+          <textarea
+            ref={messageInputRef}
+            onPaste={(e) => {
+              const items = Array.from(e.clipboardData.items);
 
             const imageItems = items.filter((item) =>
               item.type.startsWith("image/"),
@@ -130,10 +128,10 @@ function FooterInput() {
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-3">
             <button
-              disabled={isLoading || isTyping || isFree}
+              disabled={isLoading || isTyping}
               onClick={() => imageInputRef.current?.click()}
               className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/60"
-              title={isFree ? "Изображения недоступны на Free" : "Прикрепить изображение"}
+              title="Прикрепить изображение"
             >
               <ImagePlus size={15} />
             </button>
