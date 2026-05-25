@@ -6,7 +6,7 @@ from PyInstaller.utils.hooks import collect_data_files
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[('ffmpeg/ffmpeg.exe', 'ffmpeg'), ('ffmpeg/ffprobe.exe', 'ffmpeg')],
+    binaries=[('ffmpeg/ffmpeg.exe', 'ffmpeg')],
     datas=[('routes', 'routes')] + collect_data_files('whisper', include_py_files=False),
     hiddenimports=['routes.health', 'routes.chat', 'routes.audio', 'whisper_service', 'config', 'models', 'prompts'],
     hookspath=[],

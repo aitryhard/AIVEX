@@ -47,6 +47,7 @@
   },
   "build": {
     "artifactName": "${productName}-Setup-${version}.${ext}",
+    "compression": "maximum",
     "icon": "build/icon.ico",
     "publish": [
       {
@@ -69,8 +70,8 @@
         "to": "backend/.env.example"
       },
       {
-        "from": "backend/ffmpeg",
-        "to": "backend/ffmpeg"
+        "from": "backend/ffmpeg/ffmpeg.exe",
+        "to": "backend/ffmpeg/ffmpeg.exe"
       }
     ],
     "appId": "com.aivex.app",
