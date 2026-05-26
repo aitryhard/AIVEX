@@ -110,7 +110,9 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
 
   useEffect(() => {
     if (highlightTier && tierRefs.current[highlightTier]) {
-      tierRefs.current[highlightTier].scrollIntoView({ block: "center" });
+      setTimeout(() => {
+        tierRefs.current[highlightTier]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
     }
   }, [highlightTier]);
 
