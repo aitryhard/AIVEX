@@ -14,13 +14,6 @@ export const THEME_PRESETS = [
     userColor: "#6ee7b7",
   },
   {
-    name: "Cherry",
-    opacity: 60,
-    panelColor: "#1f0a0c",
-    aiColor: "#fce4ec",
-    userColor: "#fb7185",
-  },
-  {
     name: "Ocean",
     opacity: 55,
     panelColor: "#081c2e",
@@ -35,11 +28,11 @@ export const THEME_PRESETS = [
     userColor: "#a78bfa",
   },
   {
-    name: "Sky",
-    opacity: 55,
-    panelColor: "#e8f4f8",
-    aiColor: "#d0e8f0",
-    userColor: "#4a90d9",
+    name: "Cherry",
+    opacity: 60,
+    panelColor: "#1f0a0c",
+    aiColor: "#fce4ec",
+    userColor: "#fb7185",
   },
   {
     name: "Mint",
@@ -54,5 +47,12 @@ export const THEME_PRESETS = [
     panelColor: "#f0e8d8",
     aiColor: "#e0d8c8",
     userColor: "#b89060",
+  },
+  {
+    name: "Sky",
+    opacity: 55,
+    panelColor: "#e8f4f8",
+    aiColor: "#d0e8f0",
+    userColor: "#4a90d9",
   },
 ];

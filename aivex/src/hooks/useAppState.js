@@ -62,6 +62,11 @@ export function useAppState() {
     true,
   );
 
+  const [screenPeekPrompt, setScreenPeekPrompt] = usePersistentState(
+    STORAGE_KEYS.SCREEN_PEEK_PROMPT,
+    "",
+  );
+
   const [themeCreatorOpen, setThemeCreatorOpen] = useState(false);
   const [newThemeName, setNewThemeName] = useState("");
 
@@ -261,7 +266,7 @@ export function useAppState() {
     start: startScreenPeek,
     stop: stopScreenPeek,
     sendAnalysisToChat,
-  } = useScreenPeek({ setMessages, profile, customProfiles });
+  } = useScreenPeek({ setMessages, profile, customProfiles, screenPeekPrompt });
 
   const chatContextValue = {
     messages, setMessages,
@@ -278,6 +283,7 @@ export function useAppState() {
     autoClipboard, setAutoClipboard,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
     screenPeekAnalysis, screenPeekHistory, screenPeekAnalyzing, screenPeekError, sendAnalysisToChat,
+    screenPeekPrompt, setScreenPeekPrompt,
   };
 
   const settingsContextValue = {
@@ -291,6 +297,7 @@ export function useAppState() {
     currentTier,
     subscriptionExpiresAt,
     deviceId,
+    screenPeekPrompt, setScreenPeekPrompt,
     activeColorTarget, setActiveColorTarget,
     themeCreatorOpen, setThemeCreatorOpen,
     newThemeName, setNewThemeName,

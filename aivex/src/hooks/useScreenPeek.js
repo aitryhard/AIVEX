@@ -49,7 +49,7 @@ const SYSTEM_PROMPT_BASE =
 
 const DEFAULT_SCREEN_PEEK_CUSTOM_PROMPT = "";
 
-export function useScreenPeek({ setMessages, profile, customProfiles }) {
+export function useScreenPeek({ setMessages, profile, customProfiles, screenPeekPrompt }) {
   const [isActive, setIsActive] = useState(false);
   const [lastAnalysis, setLastAnalysis] = useState("");
   const [analysisHistory, setAnalysisHistory] = useState([]);
@@ -82,6 +82,7 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
   }, [customProfiles, profile]);
 
   const getScreenPeekPrompt = useCallback(() => {
+    if (screenPeekPrompt && screenPeekPrompt.trim()) return screenPeekPrompt;
     const custom = getActiveCustomProfile();
     if (custom?.prompt) return custom.prompt;
     if (custom) {
@@ -89,7 +90,7 @@ export function useScreenPeek({ setMessages, profile, customProfiles }) {
       if (built) return built + "\n\n" + SYSTEM_PROMPT_BASE;
     }
     return SYSTEM_PROMPT_BASE;
-  }, [getActiveCustomProfile]);
+  }, [getActiveCustomProfile, screenPeekPrompt]);
 
   const analyzeFrame = useCallback(async (dataUrl, forceAnalyze) => {
     if (abortRef.current) abortRef.current.abort();

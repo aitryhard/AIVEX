@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Minus, Square, X, MessageCircle, Loader2, Send } from "lucide-react";
+import { Minus, Square, X, MessageCircle, Loader2, Send, Settings } from "lucide-react";
 
-function ScreenPeekView({ backendOnline, analysis, history, isAnalyzing, error, onStop, onSendToChat }) {
+function ScreenPeekView({ backendOnline, analysis, history, isAnalyzing, error, onStop, onSendToChat, screenPeekPrompt, setScreenPeekPrompt }) {
   const [selectedIdx, setSelectedIdx] = useState(null);
+  const [showPrompt, setShowPrompt] = useState(false);
   const selected = selectedIdx !== null ? history[selectedIdx] : null;
   const displayText = selected || analysis || "";
 
@@ -23,6 +24,9 @@ function ScreenPeekView({ backendOnline, analysis, history, isAnalyzing, error, 
               {history.length} анализа
             </span>
           )}
+          <button onClick={() => setShowPrompt(!showPrompt)} className={`ml-1 flex items-center gap-1.5 px-2.5 h-7 rounded-lg text-xs transition ${showPrompt ? "text-white/70 bg-white/10" : "text-white/35 hover:text-white hover:bg-white/10"}`}>
+            <Settings size={13} />
+          </button>
           <button onClick={onStop} className="ml-1 flex items-center gap-1.5 px-2.5 h-7 rounded-lg text-xs text-white/35 hover:text-white hover:bg-white/10 transition">
             <MessageCircle size={13} />
             Чат
@@ -34,6 +38,18 @@ function ScreenPeekView({ backendOnline, analysis, history, isAnalyzing, error, 
           <button onClick={() => window.aivexWindow?.close()} className="w-8 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-red-300 hover:bg-red-500/15 transition"><X size={15} /></button>
         </div>
       </div>
+
+      {showPrompt && (
+        <div className="border-b border-white/[0.06] bg-black/30 px-4 py-2">
+          <textarea
+            value={screenPeekPrompt}
+            onChange={(e) => setScreenPeekPrompt(e.target.value)}
+            placeholder="Промпт для анализа экрана... (пусто — стандартный)"
+            rows={2}
+            className="w-full rounded-xl border border-white/[0.06] bg-white/[0.015] px-3 py-1.5 text-xs text-white/60 placeholder:text-white/20 outline-none resize-none"
+          />
+        </div>
+      )}
 
       <div className="flex-1 flex overflow-hidden">
         {history.length > 0 && (

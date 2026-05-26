@@ -4,4 +4,5 @@ export const STORAGE_KEYS = {
   UI_SETTINGS: "aivex-ui-settings",
   PROFILE: "aivex-profile",
   AUTO_CLIPBOARD: "aivex-auto-clipboard",
+  SCREEN_PEEK_PROMPT: "aivex-screen-peek-prompt",
 };

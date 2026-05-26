@@ -33,6 +33,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
   const scrollRef = useRef(null);
   const [panelScrollUp, setPanelScrollUp] = useState(false);
   const [panelScrollDown, setPanelScrollDown] = useState(false);
+  const [sliderValue, setSliderValue] = useState(null);
 
   const updatePanelScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -214,19 +215,20 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
               <div className="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-white/50">Фон</span>
-                  <span className="text-xs text-white/40 font-mono">{uiSettings.opacity}%</span>
+                  <span className="text-xs text-white/40 font-mono">{sliderValue ?? uiSettings.opacity}%</span>
                 </div>
                 <input
                   type="range"
                   min="0"
                   max="100"
-                  value={uiSettings.opacity}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onChange={(e) => setUiSettings((prev) => ({ ...prev, opacity: Number(e.target.value) }))}
+                  value={sliderValue ?? uiSettings.opacity}
+                  onMouseDown={(e) => { e.stopPropagation(); setSliderValue(uiSettings.opacity); }}
+                  onChange={(e) => setSliderValue(Number(e.target.value))}
+                  onMouseUp={() => { if (sliderValue !== null) { setUiSettings((prev) => ({ ...prev, opacity: sliderValue })); setSliderValue(null); } }}
                   className="no-drag w-full accent-white/60 focus:outline-none h-2"
                 />
               </div>
-            </div>
+          </div>
 
             <div>
               <h3 className="text-[11px] font-medium text-white/40 tracking-widest uppercase mb-3">Цвета</h3>

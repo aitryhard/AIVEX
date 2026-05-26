@@ -92,6 +92,8 @@ function App() {
                 error={chatContextValue.screenPeekError}
                 onStop={chatContextValue.stopScreenPeek}
                 onSendToChat={chatContextValue.sendAnalysisToChat}
+                screenPeekPrompt={chatContextValue.screenPeekPrompt}
+                setScreenPeekPrompt={chatContextValue.setScreenPeekPrompt}
               />
             )}
 
