@@ -99,6 +99,8 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
   const currentRank = TIER_RANK[currentTier] ?? 0;
   const scrollRef = useRef(null);
   const tierRefs = useRef({});
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [buyingTier, setBuyingTier] = useState(null);
@@ -120,12 +122,12 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
     if (!open) return;
     function handleClick(e) {
       if (scrollRef.current && !scrollRef.current.contains(e.target)) {
-        onClose();
+        onCloseRef.current();
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [open, onClose]);
+  }, [open]);
 
   const handleBuy = useCallback(async (tierId) => {
     if (buyingTier) return;
