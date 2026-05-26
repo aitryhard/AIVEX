@@ -36,6 +36,8 @@ contextBridge.exposeInMainWorld("aivexWindow", {
 
   saveTextFile: (content, suggestedName) => ipcRenderer.invoke("file:saveText", content, suggestedName),
 
+  importJSON: () => ipcRenderer.invoke("file:importJSON"),
+
   openFile: (filePath) => ipcRenderer.invoke("file:open", filePath),
 
   openImage: (dataUrl) => ipcRenderer.invoke("image:open", dataUrl),

@@ -7,6 +7,9 @@ const TIER_MODEL = {
   premium: "openai/gpt-4o",
 };
 
+const responseCache = new Map();
+const MAX_CACHE_SIZE = 50;
+
 let deviceIdCache = null;
 
 export function getDeviceId() {
@@ -30,6 +33,11 @@ export async function sendChatRequest({
 }) {
   const model = TIER_MODEL[currentTier] || "openai/gpt-4o-mini";
   const device_id = await getDeviceId();
+
+  const cacheKey = `${text}|${profile}|${(images || []).length}|${customPrompt || ""}`;
+  if (responseCache.has(cacheKey) && !images?.length) {
+    return responseCache.get(cacheKey);
+  }
 
   const response = await fetch(`${API_URL}${ENDPOINTS.CHAT}`, {
     method: "POST",
@@ -67,6 +75,12 @@ export async function sendChatRequest({
     };
     throw new Error(errorMessages[data.error] || data.error);
   }
+
+  if (responseCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = responseCache.keys().next().value;
+    responseCache.delete(firstKey);
+  }
+  responseCache.set(cacheKey, data);
 
   return data;
 }

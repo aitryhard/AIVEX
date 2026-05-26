@@ -127,13 +127,13 @@ function FooterInput() {
           }}
         />
 
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-end justify-between mt-3">
           <div className="flex items-center gap-3">
             <button
               disabled={isLoading || isTyping}
               onClick={() => isFree ? openSubscriptionAt("pro") : imageInputRef.current?.click()}
               className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:hover:bg-white/10 disabled:hover:text-white/60"
-              title={isFree ? "Изображения — откройте подписку" : "Прикрепить изображение"}
+              title={isFree ? "Изображения" : "Прикрепить изображение"}
             >
               <ImagePlus size={15} />
             </button>
@@ -160,7 +160,7 @@ function FooterInput() {
                 isRecording
                   ? "Остановить запись"
                   : isFree
-                    ? "Аудио — откройте подписку"
+                    ? "Аудиозапись — откройте подписку Pro"
                     : whisperFailed
                       ? "Модель распознавания не загружена"
                       : whisperLoading
@@ -185,7 +185,7 @@ function FooterInput() {
                   ? "Остановить показ экрана"
                   : screenPeekAllowed
                     ? "Показать экран AI"
-                    : "Screen Peek доступен только на Premium"
+                    : "Screen Peek — откройте подписку Premium"
               }
             >
               <Monitor size={15} />
@@ -204,11 +204,7 @@ function FooterInput() {
             </button>
           </div>
 
-          {isFree && (
-            <span className={`text-[10px] px-2 py-1 rounded-lg ${freeMessagesLeft <= 5 ? "text-red-300/80 bg-red-500/10" : "text-white/30 bg-white/[0.04]"}`}>
-              {freeMessagesLeft}/{freeMessagesLimit}
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-0.5">
 
           <button
             disabled={isTyping}
@@ -229,6 +225,7 @@ function FooterInput() {
           >
             {isLoading ? "Отменить" : "Отправить"}
           </button>
+        </div>
         </div>
       </div>
     </footer>

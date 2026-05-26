@@ -409,9 +409,10 @@ ipcMain.on("window:close", () => {
 });
 
 ipcMain.handle("file:saveText", async (_event, content, suggestedName) => {
-  const name = suggestedName
-    ? suggestedName.replace(/[<>:"/\\|?*]/g, "_").slice(0, 100) + ".txt"
-    : "aivex-response.txt";
+  const base = suggestedName
+    ? suggestedName.replace(/[<>:"/\\|?*]/g, "_").slice(0, 100)
+    : "aivex-response";
+  const name = base.includes(".") ? base : base + ".txt";
 
   const result = await dialog.showSaveDialog(mainWindow, {
     title: "Сохранить ответ Aivex",
@@ -458,6 +459,15 @@ ipcMain.handle("image:open", async (_event, dataUrl) => {
     console.log("[image:open] error:", e);
     return { opened: false };
   }
+});
+
+ipcMain.handle("file:importJSON", async () => {
+  const result = await dialog.showOpenDialog({
+    filters: [{ name: "JSON", extensions: ["json"] }],
+    properties: ["openFile"],
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  return fs.readFileSync(result.filePaths[0], "utf-8");
 });
 
 ipcMain.handle("clipboard:getText", () => {

@@ -6,7 +6,8 @@ import {
   SlidersHorizontal,
   Pencil,
   Trash2,
-  Crown,
+  CreditCard,
+  Download,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -18,7 +19,7 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
-  const { clearChat, isTyping, isLoading } = useChat();
+  const { clearChat, isTyping, isLoading, messages } = useChat();
   const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, subscriptionOpen, openSubscriptionAt, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
@@ -120,20 +121,6 @@ function Header({ backendOnline }) {
           <button
             onMouseDown={(e) => {
               e.stopPropagation();
-              setSettingsOpen((prev) => !prev);
-              setProfileMenu(false);
-              setProfileCreatorOpen(false);
-              setThemeCreatorOpen(false);
-              setSubscriptionOpen(false);
-            }}
-            className="no-drag w-9 h-9 rounded-2xl bg-white/10 border border-white/10 text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl flex items-center justify-center"
-          >
-            <SlidersHorizontal strokeWidth={1.8} size={15} />
-          </button>
-
-          <button
-            onMouseDown={(e) => {
-              e.stopPropagation();
               setSettingsOpen(false);
               setProfileMenu(false);
               setProfileCreatorOpen(false);
@@ -144,14 +131,25 @@ function Header({ backendOnline }) {
                 openSubscriptionAt(null);
               }
             }}
-            className={`no-drag w-9 h-9 rounded-2xl border transition backdrop-blur-xl flex items-center justify-center ${
-              subscriptionOpen
-                ? "bg-amber-500/15 border-amber-500/30 text-amber-400"
-                : "bg-white/10 border-white/10 text-white/80 hover:bg-white/15 hover:text-white"
-            }`}
+            className="no-drag w-9 h-9 rounded-2xl bg-white/10 border border-white/10 text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl flex items-center justify-center"
             title="Подписка"
           >
-            <Crown strokeWidth={1.8} size={15} />
+            <CreditCard strokeWidth={1.8} size={15} />
+          </button>
+
+          <button
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setSettingsOpen((prev) => !prev);
+              setProfileMenu(false);
+              setProfileCreatorOpen(false);
+              setThemeCreatorOpen(false);
+              setSubscriptionOpen(false);
+            }}
+            title="Настройки"
+            className="no-drag w-9 h-9 rounded-2xl bg-white/10 border border-white/10 text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl flex items-center justify-center"
+          >
+            <SlidersHorizontal strokeWidth={1.8} size={15} />
           </button>
 
           <button
@@ -167,6 +165,23 @@ function Header({ backendOnline }) {
             <Trash2 strokeWidth={1.8} size={15} />
           </button>
 
+          <button
+            onClick={async () => {
+              if (messages.length === 0) return;
+              const lines = messages.map((m) => {
+                const role = m.role === "ai" ? "Aivex" : "Вы";
+                const time = m.time ? `[${m.time}]` : "";
+                return `${time} ${role}: ${m.text}`;
+              });
+              const content = lines.join("\n\n---\n\n");
+              await window.aivexWindow?.saveTextFile(content, "aivex-chat.txt");
+            }}
+            title="Экспорт чата"
+            className="no-drag w-9 h-9 rounded-2xl bg-white/10 border border-white/10 text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl flex items-center justify-center"
+          >
+            <Download strokeWidth={1.8} size={15} />
+          </button>
+
           <div className="relative no-drag">
             <button
               onMouseDown={(e) => {
@@ -176,8 +191,9 @@ function Header({ backendOnline }) {
                 setSubscriptionOpen(false);
                 setProfileCreatorOpen(false);
                 setThemeCreatorOpen(false);
-              }}
-              className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-xs text-white/80 hover:bg-white/15 transition backdrop-blur-xl"
+            }}
+            title="Профиль"
+            className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-xs text-white/80 hover:bg-white/15 transition backdrop-blur-xl"
             >
               {profile}
             </button>

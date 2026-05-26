@@ -5,6 +5,7 @@ import { HexColorPicker } from "react-colorful";
 import { THEME_PRESETS } from "../constants/themePresets";
 import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
+import { STORAGE_KEYS } from "../constants/storageKeys";
 
 const FREE_THEMES = ["Midnight", "Slime", "Ocean", "Violet"];
 
@@ -256,12 +257,42 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
               </div>
             </div>
 
-            <div className="flex justify-center pt-1">
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={async () => {
+                  const data = {};
+                  for (const key of Object.values(STORAGE_KEYS)) {
+                    const v = localStorage.getItem(key);
+                    if (v) data[key] = v;
+                  }
+                  await window.aivexWindow?.saveTextFile(JSON.stringify(data, null, 2), "aivex-settings.json");
+                }}
+                className="px-4 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition"
+              >
+                Экспорт
+              </button>
+              <button
+                onClick={async () => {
+                  if (!window.aivexWindow?.importJSON) return;
+                  const raw = await window.aivexWindow.importJSON();
+                  if (!raw) return;
+                  try {
+                    const data = JSON.parse(raw);
+                    for (const [key, value] of Object.entries(data)) {
+                      localStorage.setItem(key, value);
+                    }
+                    window.location.reload();
+                  } catch { alert("Неверный формат файла"); }
+                }}
+                className="px-4 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition"
+              >
+                Импорт
+              </button>
               <button
                 onClick={resetUiSettings}
-                className="px-5 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition"
+                className="px-4 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition"
               >
-                Сбросить настройки
+                Сброс
               </button>
             </div>
 
