@@ -129,7 +129,7 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const handleBuy = useCallback(async (tierId) => {
+  async function handleBuy(tierId) {
     if (buyingTier) return;
     setBuyingTier(tierId);
     try {
@@ -148,7 +148,7 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
     } finally {
       setBuyingTier(null);
     }
-  }, [buyingTier]);
+  }
 
   const updateScroll = useCallback(() => {
     const el = scrollRef.current;
