@@ -35,6 +35,7 @@ function App() {
     setClipboardImages,
     settingsRef, subscriptionRef,
     subscriptionOpen, setSubscriptionOpen,
+    subscriptionTargetTier, setSubscriptionTargetTier,
     currentTier,
     chatContextValue,
     settingsContextValue,
@@ -133,7 +134,8 @@ function App() {
               <SubscriptionPanel
                 ref={subscriptionRef}
                 open={subscriptionOpen}
-                onClose={() => setSubscriptionOpen(false)}
+                highlightTier={subscriptionTargetTier}
+                onClose={() => { setSubscriptionOpen(false); setSubscriptionTargetTier(null); }}
                 currentTier={currentTier}
               />
 

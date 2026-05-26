@@ -21,7 +21,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
     currentTier,
     subscriptionExpiresAt,
     deviceId,
-    setSubscriptionOpen,
+    openSubscriptionAt,
   } = useSettings();
   const { setProfileMenu, setProfileCreatorOpen } = useProfile();
 
@@ -102,7 +102,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                   return (
                     <button
                       key={preset.name}
-                      onClick={() => locked ? setSubscriptionOpen(true) : applyThemePreset(preset)}
+                      onClick={() => locked ? openSubscriptionAt("pro") : applyThemePreset(preset)}
                       className={`h-[86px] rounded-2xl border transition p-3 text-left ${locked ? "border-white/[0.04] bg-white/[0.01] opacity-30 cursor-not-allowed" : "border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.03] hover:-translate-y-0.5"}`}
                     >
                       <div className={`text-xs font-medium ${locked ? "text-white/20" : "text-white/70"}`}>
@@ -124,7 +124,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                 {customThemes.map((theme) => (
                   <div key={theme.id} className="group relative h-[86px]">
                     <button
-                      onClick={() => isFree ? setSubscriptionOpen(true) : applyThemePreset(theme)}
+                      onClick={() => isFree ? openSubscriptionAt("premium") : applyThemePreset(theme)}
                       className={`w-full h-full rounded-2xl border transition p-3 text-left ${isFree ? "border-white/[0.04] bg-white/[0.01] opacity-30 cursor-not-allowed" : "border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.03] hover:-translate-y-0.5"}`}
                     >
                       <div className={`text-xs font-medium pr-5 ${isFree ? "text-white/20" : "text-white/70"}`}>
@@ -157,7 +157,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                   onClick={(e) => {
                     if (isFree) {
                       setSettingsOpen(false);
-                      setTimeout(() => setSubscriptionOpen(true), 200);
+                      setTimeout(() => openSubscriptionAt("premium"), 200);
                       return;
                     }
                     e.preventDefault(); e.stopPropagation();
@@ -235,7 +235,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                   {[["panelColor", "Панель"], ["aiColor", "AI"], ["userColor", "Пользователь"]].map(([key, label]) => (
                     <button
                       key={key}
-                      onClick={() => isFree ? setSubscriptionOpen(true) : setActiveColorTarget(key)}
+                      onClick={() => isFree ? openSubscriptionAt("pro") : setActiveColorTarget(key)}
                       className={`p-3 rounded-2xl border transition text-left ${activeColorTarget === key ? "border-white/20 bg-white/[0.06]" : "border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.03]"}`}
                     >
                       <div className="text-xs text-white/70 font-medium mb-2">{label}</div>

@@ -13,7 +13,7 @@ function FooterInput() {
     whisperReady, whisperLoading, whisperFailed,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
   } = useChat();
-  const { uiSettings, currentTier, setSubscriptionOpen } = useSettings();
+  const { uiSettings, currentTier, openSubscriptionAt } = useSettings();
   const isFree = currentTier === "free";
   const screenPeekAllowed = currentTier === "premium";
 
@@ -142,7 +142,7 @@ function FooterInput() {
                 isRecording
                   ? stopDesktopAudioRecording
                   : isFree
-                    ? () => setSubscriptionOpen(true)
+                    ? () => openSubscriptionAt("pro")
                     : whisperFailed || whisperLoading ? undefined : startDesktopAudioRecording
               }
               className={
@@ -170,7 +170,7 @@ function FooterInput() {
             </button>
 
             <button
-              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed && !isLoading && !isTyping ? startScreenPeek : screenPeekAllowed ? undefined : () => setSubscriptionOpen(true)}
+              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed && !isLoading && !isTyping ? startScreenPeek : screenPeekAllowed ? undefined : () => openSubscriptionAt("premium")}
               className={
                 isScreenPeeking
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/80 border border-emerald-400/30 text-white hover:bg-emerald-500 transition"

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import { DEFAULT_UI_SETTINGS } from "../constants/defaultUiSettings";
 import { STORAGE_KEYS } from "../constants/storageKeys";
@@ -77,11 +77,17 @@ export function useAppState() {
   const [activeColorTarget, setActiveColorTarget] = useState("panelColor");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [subscriptionOpen, setSubscriptionOpen] = useState(false);
+  const [subscriptionTargetTier, setSubscriptionTargetTier] = useState(null);
   const [currentTier, setCurrentTier] = useState("free");
   const [subscriptionExpiresAt, setSubscriptionExpiresAt] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
+
+  const openSubscriptionAt = useCallback((tier) => {
+    setSubscriptionTargetTier(tier);
+    setSubscriptionOpen(true);
+  }, []);
 
   const [messages, setMessages] = useState([]);
 
@@ -280,6 +286,7 @@ export function useAppState() {
     applyThemePreset, createCustomTheme, deleteCustomTheme, resetUiSettings,
     settingsOpen, setSettingsOpen,
     subscriptionOpen, setSubscriptionOpen,
+    subscriptionTargetTier, openSubscriptionAt,
     currentTier,
     subscriptionExpiresAt,
     deviceId,
@@ -309,6 +316,7 @@ export function useAppState() {
     setClipboardImages,
     settingsRef, subscriptionRef,
     subscriptionOpen, setSubscriptionOpen,
+    subscriptionTargetTier, setSubscriptionTargetTier,
     currentTier, setCurrentTier,
     subscriptionExpiresAt,
     chatContextValue,

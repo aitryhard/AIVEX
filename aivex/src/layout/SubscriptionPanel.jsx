@@ -93,7 +93,7 @@ const cardVariants = {
 const TIER_RANK = { free: 0, pro: 1, premium: 2 };
 
 const SubscriptionPanel = forwardRef(function SubscriptionPanel(
-  { open, onClose, currentTier },
+  { open, onClose, currentTier, highlightTier },
   ref,
 ) {
   const currentRank = TIER_RANK[currentTier] ?? 0;
@@ -102,6 +102,18 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [buyingTier, setBuyingTier] = useState(null);
   const { panelAccentStyle, uiSettings } = useSettings();
+
+  useEffect(() => {
+    if (!open || !highlightTier) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const target = el.querySelector(`[data-tier="${highlightTier}"]`);
+    if (target) {
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  }, [open, highlightTier]);
 
   const handleBuy = useCallback(async (tierId) => {
     if (buyingTier) return;
@@ -182,6 +194,7 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
                   return (
                     <motion.div
                       key={tier.id}
+                      data-tier={tier.id}
                       variants={cardVariants}
                       className={`relative rounded-2xl border p-4 transition-all duration-300 backdrop-blur-xl ${isBelow ? "border-white/[0.04]" : tier.accent} ${isCurrent ? "bg-white/[0.08]" : isBelow ? "bg-black/[0.18]" : "bg-white/[0.03] hover:bg-white/[0.05] hover:-translate-y-0.5"}`}
                     >

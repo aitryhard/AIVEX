@@ -17,7 +17,7 @@ import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
   const { clearChat, isTyping, isLoading } = useChat();
-  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, currentTier } = useSettings();
+  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, openSubscriptionAt, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
   const {
@@ -46,7 +46,7 @@ function Header({ backendOnline }) {
   function handleProfileClick(name) {
     if (currentTier === "free" && !FREE_PROFILES.includes(name)) {
       setProfileMenu(false);
-      setSubscriptionOpen(true);
+      openSubscriptionAt("pro");
       return;
     }
     setProfile(name);
