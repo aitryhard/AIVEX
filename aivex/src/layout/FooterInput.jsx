@@ -170,7 +170,7 @@ function FooterInput() {
             </button>
 
             <button
-              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed ? startScreenPeek : () => setSubscriptionOpen(true)}
+              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed && !isLoading && !isTyping ? startScreenPeek : screenPeekAllowed ? undefined : () => setSubscriptionOpen(true)}
               className={
                 isScreenPeeking
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/80 border border-emerald-400/30 text-white hover:bg-emerald-500 transition"
