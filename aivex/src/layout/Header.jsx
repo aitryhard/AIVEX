@@ -17,7 +17,7 @@ import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
   const { clearChat, isTyping, isLoading } = useChat();
-  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, openSubscriptionAt, currentTier } = useSettings();
+  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, openSubscriptionAt, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
   const {

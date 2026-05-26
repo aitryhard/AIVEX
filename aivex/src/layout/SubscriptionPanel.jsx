@@ -115,6 +115,17 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
     }
   }, [open, highlightTier]);
 
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e) {
+      if (scrollRef.current && !scrollRef.current.contains(e.target)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open, onClose]);
+
   const handleBuy = useCallback(async (tierId) => {
     if (buyingTier) return;
     setBuyingTier(tierId);

@@ -18,7 +18,7 @@ function TypingDots() {
 
 function ChatMessages({ renderMarkdown }) {
   const { messages, isLoading, chatEndRef } = useChat();
-  const { setSettingsOpen } = useSettings();
+  const { setSettingsOpen, setSubscriptionOpen } = useSettings();
   const { setProfileMenu, setProfileCreatorOpen } = useProfile();
   const [startMessage] = useState(() => START_MESSAGES[Math.floor(Math.random() * START_MESSAGES.length)]);
   const [cleared, setCleared] = useState(false);
@@ -45,6 +45,7 @@ function ChatMessages({ renderMarkdown }) {
         setSettingsOpen(false);
         setProfileMenu(false);
         setProfileCreatorOpen(false);
+        setSubscriptionOpen(false);
       }}
       className="flex-1 overflow-y-auto p-5 pb-[220px] space-y-4 scrollbar-hide"
     >
