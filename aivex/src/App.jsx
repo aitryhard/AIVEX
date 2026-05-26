@@ -103,7 +103,7 @@ function App() {
               transition={{ duration: 0.35, ease: "easeOut" }}
               style={settingsContextValue.panelStyle}
               data-theme={settingsContextValue.isDark ? "dark" : "light"}
-              className={`relative w-screen h-screen rounded-[14px] border backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden transition-[background-color,border-color] duration-300 ${settingsContextValue.isDark ? "border-white/10" : "border-black/10"}`}
+              className={`relative w-screen h-screen rounded-[14px] border shadow-none flex flex-col overflow-hidden transition-[background-color,border-color] duration-300 ${settingsContextValue.isDark ? "border-white/10" : "border-black/10"}`}
             >
               <Header backendOnline={backendOnline} />
 
