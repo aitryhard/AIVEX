@@ -1,7 +1,7 @@
 {
   "name": "aivex",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.5",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
@@ -12,12 +12,16 @@
     "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\""
+    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,css,json}\" \"electron/**/*.{js,cjs}\"",
+    "prepare": "husky",
+    "prepare": "husky"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.8.3",
+    "ffmpeg-static": "^5.3.0",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
     "node-machine-id": "^1.1.12",
@@ -41,12 +45,16 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
     "vite": "^8.0.12",
     "wait-on": "^9.0.10"
   },
   "build": {
     "artifactName": "${productName}-Setup-${version}.${ext}",
+    "compression": "maximum",
+    "generateUpdatesFilesForAllChannels": true,
     "icon": "build/icon.ico",
     "publish": [
       {
@@ -63,10 +71,6 @@
       {
         "from": "backend/.env",
         "to": "backend/.env"
-      },
-      {
-        "from": "backend/ffmpeg",
-        "to": "backend/ffmpeg"
       }
     ],
     "appId": "com.aivex.app",
@@ -84,10 +88,10 @@
       "icon": "build/icon.ico"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
-      "allowElevation": false,
-      "allowToChangeInstallationDirectory": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Aivex",
@@ -95,7 +99,23 @@
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "deleteAppDataOnUninstall": false,
-      "differentialPackage": false
+      "differentialPackage": true,
+      "language": "1049",
+      "installerLanguages": [
+        "ru_RU",
+        "en_US"
+      ],
+      "uninstallDisplayName": "Aivex",
+      "warningsAsErrors": false
     }
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "src/**/*.css": [
+      "prettier --write"
+    ]
   }
 }

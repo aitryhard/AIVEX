@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { getTime } from "../utils/getTime";
 import { generateFilename } from "../utils/generateFilename";
+import { generateId } from "../utils/generateId";
 import { transcribeAudio } from "../services/audioApi";
 import { MAX_CHAT_RESPONSE_LENGTH } from "../constants/chatLimits";
 
@@ -34,7 +35,7 @@ export function useAudioRecording({ setMessages, setIsLoading }) {
     const audioStatusId = activeAudioStatusIdRef.current;
 
     const blob = new Blob(recordedChunksRef.current, {
-        type: "audio/webm",
+        type: "video/webm",
     });
 
     stream.getTracks().forEach((track) => track.stop());
@@ -112,7 +113,7 @@ export function useAudioRecording({ setMessages, setIsLoading }) {
       mediaRecorderRef.current = recorder;
       recorder.start();
 
-      const audioStatusId = crypto.randomUUID();
+      const audioStatusId = generateId();
 
       activeAudioStatusIdRef.current = audioStatusId;
 

@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { START_MESSAGES } from "../constants/startMessages";
 import { DEFAULT_UI_SETTINGS } from "../constants/defaultUiSettings";
 import { STORAGE_KEYS } from "../constants/storageKeys";
+import { THEME_PRESETS } from "../constants/themePresets";
 
 import { useBackendStatus } from "./useBackendStatus";
 import { useActivation } from "./useActivation";
@@ -29,12 +30,20 @@ function getRandomStartMessage() {
 
 export function useAppState() {
   const appVersion = useAppVersion();
-  const updateStatus = useUpdater();
+  const { updateStatus, downloadProgress } = useUpdater();
   const { activationStatus, setActivationStatus } = useActivation();
   const { backendOnline, restartInfo } = useBackendStatus(activationStatus);
-  const { whisperReady, whisperLoading } = useWhisperStatus();
+  const { whisperReady, whisperLoading, whisperFailed } = useWhisperStatus();
   const { showSplash, setShowSplash, splashMode, setSplashMode } =
     useSplashScreen();
+
+  const [deviceId, setDeviceId] = useState("");
+
+  useEffect(() => {
+    window.aivexWindow?.getDeviceId().then((id) => {
+      if (id) setDeviceId(id.slice(0, 8));
+    }).catch(() => {});
+  }, []);
 
   const [customProfiles, setCustomProfiles] = usePersistentState(
     STORAGE_KEYS.CUSTOM_PROFILES,
@@ -66,10 +75,15 @@ export function useAppState() {
     name: "",
     length: "standard",
     thinking: "standard",
+    prompt: "",
   });
+  const [editingProfile, setEditingProfile] = useState(null);
 
   const [activeColorTarget, setActiveColorTarget] = useState("panelColor");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [subscriptionOpen, setSubscriptionOpen] = useState(false);
+  const [currentTier, setCurrentTier] = useState("free");
+  const [subscriptionExpiresAt, setSubscriptionExpiresAt] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
@@ -89,9 +103,10 @@ export function useAppState() {
   const imageInputRef = useRef(null);
   const chatEndRef = useRef(null);
   const settingsRef = useRef(null);
+  const subscriptionRef = useRef(null);
   const profileRef = useRef(null);
 
-  const { panelStyle, aiBubbleStyle, userBubbleStyle, panelAccentStyle } =
+  const { panelStyle, aiBubbleStyle, userBubbleStyle, panelAccentStyle, isDark } =
     usePanelStyles(uiSettings);
 
   const {
@@ -110,7 +125,7 @@ export function useAppState() {
     setSettingsOpen,
   });
 
-  const { deleteCustomProfile, createCustomProfile } = useProfileActions({
+  const { deleteCustomProfile, createCustomProfile, updateCustomProfile, startEditProfile, closeProfileCreator } = useProfileActions({
     profile,
     setProfile,
     customProfiles,
@@ -118,6 +133,8 @@ export function useAppState() {
     newProfile,
     setNewProfile,
     setProfileCreatorOpen,
+    editingProfile,
+    setEditingProfile,
   });
 
   const clearChat = useClearChat({
@@ -143,6 +160,8 @@ export function useAppState() {
       setClipboardImages,
       customProfiles,
       profile,
+    currentTier,
+    subscriptionExpiresAt,
     });
 
   const {
@@ -180,14 +199,71 @@ export function useAppState() {
     setClipboardImages,
   });
 
+  const tierInitialisedRef = useRef(false);
+
+  useEffect(() => {
+    function fetchTier() {
+      if (!window.aivexWindow) return Promise.resolve();
+      return window.aivexWindow.getSubscription().then((sub) => {
+        if (sub?.tier) {
+          setCurrentTier(sub.tier);
+          setSubscriptionExpiresAt(sub.expires_at || null);
+          tierInitialisedRef.current = true;
+        }
+      }).catch(() => {});
+    }
+
+    fetchTier();
+
+    function onFocus() { fetchTier(); }
+    window.addEventListener("focus", onFocus);
+
+    const interval = setInterval(fetchTier, 10000);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!tierInitialisedRef.current) return;
+    if (currentTier !== "free") return;
+
+    const freeProfiles = ["Quick", "Detailed"];
+    const freeThemes = ["Midnight", "AMOLED", "Slime"];
+
+    setProfile((prev) => {
+      if (freeProfiles.includes(prev)) return prev;
+      return "Quick";
+    });
+
+    setUiSettings((prev) => {
+      const match = THEME_PRESETS.find(
+        (t) =>
+          t.panelColor === prev.panelColor &&
+          t.aiColor === prev.aiColor &&
+          t.userColor === prev.userColor,
+      );
+      if (match && !freeThemes.includes(match.name)) {
+        return { ...prev, ...THEME_PRESETS[0] };
+      }
+      return prev;
+    });
+
+    setCustomProfiles([]);
+    setCustomThemes([]);
+  }, [currentTier]);
+
   const {
     isActive: isScreenPeeking,
     lastAnalysis: screenPeekAnalysis,
+    analysisHistory: screenPeekHistory,
     isAnalyzing: screenPeekAnalyzing,
     error: screenPeekError,
     start: startScreenPeek,
     stop: stopScreenPeek,
-  } = useScreenPeek({ setMessages });
+    sendAnalysisToChat,
+  } = useScreenPeek({ setMessages, profile, customProfiles });
 
   const chatContextValue = {
     messages, setMessages,
@@ -200,18 +276,22 @@ export function useAppState() {
     clearChat,
     chatEndRef,
     isRecording, startDesktopAudioRecording, stopDesktopAudioRecording,
-    whisperReady, whisperLoading,
+    whisperReady, whisperLoading, whisperFailed,
     autoClipboard, setAutoClipboard,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
-    screenPeekAnalysis, screenPeekAnalyzing, screenPeekError,
+    screenPeekAnalysis, screenPeekHistory, screenPeekAnalyzing, screenPeekError, sendAnalysisToChat,
   };
 
   const settingsContextValue = {
     uiSettings, setUiSettings,
-    panelStyle, aiBubbleStyle, userBubbleStyle, panelAccentStyle,
+    panelStyle, aiBubbleStyle, userBubbleStyle, panelAccentStyle, isDark,
     customThemes, setCustomThemes,
     applyThemePreset, createCustomTheme, deleteCustomTheme, resetUiSettings,
     settingsOpen, setSettingsOpen,
+    subscriptionOpen, setSubscriptionOpen,
+    currentTier,
+    subscriptionExpiresAt,
+    deviceId,
     activeColorTarget, setActiveColorTarget,
     themeCreatorOpen, setThemeCreatorOpen,
     newThemeName, setNewThemeName,
@@ -223,8 +303,9 @@ export function useAppState() {
     customProfiles, setCustomProfiles,
     profileMenu, setProfileMenu,
     profileCreatorOpen, setProfileCreatorOpen,
-    deleteCustomProfile, createCustomProfile,
+    deleteCustomProfile, createCustomProfile, updateCustomProfile, startEditProfile, closeProfileCreator,
     newProfile, setNewProfile,
+    editingProfile, setEditingProfile,
     profileRef,
   };
 
@@ -232,10 +313,13 @@ export function useAppState() {
     activationStatus, setActivationStatus,
     backendOnline, restartInfo,
     showSplash, setShowSplash, splashMode, setSplashMode,
-    updateStatus,
+    updateStatus, downloadProgress,
     isDragging, setIsDragging,
     setClipboardImages,
-    settingsRef,
+    settingsRef, subscriptionRef,
+    subscriptionOpen, setSubscriptionOpen,
+    currentTier, setCurrentTier,
+    subscriptionExpiresAt,
     chatContextValue,
     settingsContextValue,
     profileContextValue,

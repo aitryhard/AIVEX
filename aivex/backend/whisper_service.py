@@ -1,9 +1,6 @@
 import os
 import tempfile
 
-import whisper
-from fastapi import UploadFile
-
 model = None
 model_loading = False
 model_loaded = False
@@ -15,15 +12,20 @@ def preload_whisper():
     model_loading = True
 
     try:
-        model = whisper.load_model("small")
+        import whisper
+        model = whisper.load_model("base")
         model_loaded = True
     except Exception:
         model_loaded = False
+        import threading
+        threading.Timer(30.0, preload_whisper).start()
     finally:
         model_loading = False
 
 
-async def transcribe_audio(file: UploadFile):
+async def transcribe_audio(file):
+    from fastapi import UploadFile
+
     global model
 
     if model is None:
@@ -42,8 +44,11 @@ async def transcribe_audio(file: UploadFile):
             temp_path,
             language="ru",
             fp16=False,
-            temperature=0,
-            condition_on_previous_text=True,
+            temperature=0.2,
+            compression_ratio_threshold=2.0,
+            logprob_threshold=-1.0,
+            no_speech_threshold=0.6,
+            condition_on_previous_text=False,
         )
 
         return {"text": result["text"]}

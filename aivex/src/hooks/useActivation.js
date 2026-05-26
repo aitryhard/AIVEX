@@ -21,7 +21,7 @@ export function useActivation() {
 
     checkActivation();
 
-    const interval = setInterval(checkActivation, 5000);
+    const interval = setInterval(checkActivation, 15000);
 
     return () => clearInterval(interval);
   }, []);

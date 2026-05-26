@@ -1,4 +1,8 @@
 export function buildCustomPrompt(profile) {
+  if (profile.prompt) {
+    return profile.prompt;
+  }
+
   const lengthRules = {
     short: "Отвечай максимально кратко — 1–3 предложения, без вступлений и заключений, сразу суть.",
     standard: "Отвечай сбалансированно: достаточно подробно для полного понимания, но без лишней воды.",

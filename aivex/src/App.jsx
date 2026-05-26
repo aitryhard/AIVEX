@@ -9,8 +9,10 @@ import Header from "./layout/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SplashScreen from "./layout/SplashScreen";
 import SettingsPanel from "./layout/SettingsPanel";
+import SubscriptionPanel from "./layout/SubscriptionPanel";
 import ThemeCreatorPanel from "./layout/ThemeCreatorPanel";
 import ProfileCreatorPanel from "./layout/ProfileCreatorPanel";
+import ServerErrorPanel from "./layout/ServerErrorPanel";
 import UpdateBanner from "./layout/UpdateBanner";
 import ActivationScreen from "./layout/ActivationScreen";
 import DragOverlay from "./layout/DragOverlay";
@@ -28,10 +30,12 @@ function App() {
     activationStatus, setActivationStatus,
     backendOnline, restartInfo,
     showSplash, setShowSplash, splashMode, setSplashMode,
-    updateStatus,
+    updateStatus, downloadProgress,
     isDragging, setIsDragging,
     setClipboardImages,
-    settingsRef,
+    settingsRef, subscriptionRef,
+    subscriptionOpen, setSubscriptionOpen,
+    currentTier,
     chatContextValue,
     settingsContextValue,
     profileContextValue,
@@ -58,7 +62,7 @@ function App() {
     };
   }, []);
 
-  if (activationStatus && !activationStatus.allowed) {
+  if (activationStatus && !activationStatus.allowed && activationStatus.status !== "server_error") {
     return (
       <ActivationScreen
         activationStatus={activationStatus}
@@ -81,9 +85,11 @@ function App() {
               <ScreenPeekView
                 backendOnline={backendOnline}
                 analysis={chatContextValue.screenPeekAnalysis}
+                history={chatContextValue.screenPeekHistory}
                 isAnalyzing={chatContextValue.screenPeekAnalyzing}
                 error={chatContextValue.screenPeekError}
                 onStop={chatContextValue.stopScreenPeek}
+                onSendToChat={chatContextValue.sendAnalysisToChat}
               />
             )}
 
@@ -92,28 +98,53 @@ function App() {
               animate={{ opacity: showSplash ? 0 : 1 }}
               transition={{ duration: 0.35, ease: "easeOut" }}
               style={settingsContextValue.panelStyle}
-              className="relative w-screen h-screen rounded-[14px] border border-white/10 backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden"
+              data-theme={settingsContextValue.isDark ? "dark" : "light"}
+              className={`relative w-screen h-screen rounded-[14px] border backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden ${settingsContextValue.isDark ? "border-white/10" : "border-black/10"}`}
             >
               <Header backendOnline={backendOnline} />
 
-              {restartInfo && (
+              {restartInfo && !restartInfo.fatal && (
                 <div className="px-5 py-2 bg-amber-500/15 border-b border-amber-500/20 text-xs text-amber-300/80 text-center">
                   Бэкенд перезапускается ({restartInfo.attempt}/{restartInfo.max})…
+                  {restartInfo.error && (
+                    <span className="block text-[10px] text-amber-300/50 mt-0.5">{restartInfo.error}</span>
+                  )}
+                </div>
+              )}
+
+              {restartInfo?.fatal && (
+                <div className="px-5 py-2 bg-red-500/20 border-b border-red-500/30 text-xs text-red-300/90 text-center">
+                  Не удалось запустить бэкенд
+                  {restartInfo.error && (
+                    <span className="block text-[10px] text-red-300/50 mt-0.5">{restartInfo.error}</span>
+                  )}
                 </div>
               )}
 
               <UpdateBanner
                 updateStatus={updateStatus}
+                downloadProgress={downloadProgress}
                 showSplash={showSplash}
                 setSplashMode={setSplashMode}
                 setShowSplash={setShowSplash}
               />
 
               <SettingsPanel ref={settingsRef} />
+              <SubscriptionPanel
+                ref={subscriptionRef}
+                open={subscriptionOpen}
+                onClose={() => setSubscriptionOpen(false)}
+                currentTier={currentTier}
+              />
 
               <ThemeCreatorPanel />
 
               <ProfileCreatorPanel />
+
+              <ServerErrorPanel
+                activationStatus={activationStatus}
+                setActivationStatus={setActivationStatus}
+              />
 
               <ErrorBoundary>
                 <ChatMessages renderMarkdown={renderMarkdown} />
