@@ -204,19 +204,6 @@ function FooterInput() {
             </button>
           </div>
 
-          <button
-            onClick={() => openSubscriptionAt(null)}
-            className={`text-[10px] px-2.5 py-1 rounded-lg font-medium transition hover:opacity-80 ${
-              currentTier === "free"
-                ? "text-amber-300/80 bg-amber-500/10 border border-amber-500/20"
-                : currentTier === "pro"
-                  ? "text-emerald-300/80 bg-emerald-500/10 border border-emerald-500/20"
-                  : "text-violet-300/80 bg-violet-500/10 border border-violet-500/20"
-            }`}
-          >
-            {currentTier === "free" ? "Free" : currentTier === "pro" ? "Pro" : "Premium"}
-          </button>
-
           {isFree && (
             <span className={`text-[10px] px-2 py-1 rounded-lg ${freeMessagesLeft <= 5 ? "text-red-300/80 bg-red-500/10" : "text-white/30 bg-white/[0.04]"}`}>
               {freeMessagesLeft}/{freeMessagesLimit}

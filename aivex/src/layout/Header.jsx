@@ -6,6 +6,7 @@ import {
   SlidersHorizontal,
   Pencil,
   Trash2,
+  Crown,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -18,7 +19,7 @@ import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
   const { clearChat, isTyping, isLoading } = useChat();
-  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, openSubscriptionAt, currentTier } = useSettings();
+  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, subscriptionOpen, openSubscriptionAt, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
   const {
@@ -128,6 +129,29 @@ function Header({ backendOnline }) {
             className="no-drag w-9 h-9 rounded-2xl bg-white/10 border border-white/10 text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl flex items-center justify-center"
           >
             <SlidersHorizontal strokeWidth={1.8} size={15} />
+          </button>
+
+          <button
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setSettingsOpen(false);
+              setProfileMenu(false);
+              setProfileCreatorOpen(false);
+              setThemeCreatorOpen(false);
+              if (subscriptionOpen) {
+                setSubscriptionOpen(false);
+              } else {
+                openSubscriptionAt(null);
+              }
+            }}
+            className={`no-drag w-9 h-9 rounded-2xl border transition backdrop-blur-xl flex items-center justify-center ${
+              subscriptionOpen
+                ? "bg-amber-500/15 border-amber-500/30 text-amber-400"
+                : "bg-white/10 border-white/10 text-white/80 hover:bg-white/15 hover:text-white"
+            }`}
+            title="Подписка"
+          >
+            <Crown strokeWidth={1.8} size={15} />
           </button>
 
           <button
