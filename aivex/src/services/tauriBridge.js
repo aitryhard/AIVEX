@@ -38,14 +38,14 @@ export async function initTauriBridge() {
         const { check } = await import("@tauri-apps/plugin-updater");
         const update = await check();
         if (update) await update.downloadAndInstall();
-      } catch {}
+      } catch (_) {}
     },
     installUpdate: async () => {
       try {
         const { check } = await import("@tauri-apps/plugin-updater");
         const update = await check();
         if (update) await update.install();
-      } catch {}
+      } catch (_) {}
     },
 
     onUpdateAvailable: (cb) => {
@@ -102,7 +102,7 @@ export async function initTauriBridge() {
     completeMinimize: () => {},
   };
 }
-      } catch {}
+      } catch (_) {}
     },
     installUpdate: async () => {
       try {
@@ -111,7 +111,7 @@ export async function initTauriBridge() {
         if (update) {
           await update.install();
         }
-      } catch {}
+      } catch (_) {}
     },
     onUpdateAvailable: (cb) => listen("update-available", cb),
     onUpdateProgress: (cb) => listen("update-progress", ({ payload }) => cb(payload)),
