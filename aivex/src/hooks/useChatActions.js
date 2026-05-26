@@ -81,13 +81,17 @@ export function useChatActions({
     if (currentTier === "free") {
       const daily = getDailyCount();
       if (daily.count >= DAILY_FREE_LIMIT) {
+        const resetTime = new Date();
+        resetTime.setDate(resetTime.getDate() + 1);
+        resetTime.setHours(0, 0, 0, 0);
+        const resetStr = resetTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         setMessages((prev) => [
           ...prev,
           {
             id: generateId(),
             role: "ai",
-            text: `Достигнут лимит ${DAILY_FREE_LIMIT} сообщений в день на Free-тарифе.`,
-            time: new Date().toLocaleTimeString(),
+            text: `Достигнут лимит ${DAILY_FREE_LIMIT} сообщений в день. Тариф заработает завтра в ${resetStr}.`,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             profile: "System",
           },
         ]);
