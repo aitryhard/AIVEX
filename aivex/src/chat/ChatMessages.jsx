@@ -71,10 +71,7 @@ function ChatMessages({ renderMarkdown }) {
             className="flex items-center justify-center w-full pt-16"
           >
             <div className="text-center">
-              <div className="text-[22px] font-['Space_Grotesk'] font-bold tracking-tight text-white/15">
-                Aivex
-              </div>
-              <p className="text-sm text-white/20 mt-2 italic">
+              <p className="text-sm text-white/20 leading-relaxed max-w-xs">
                 {showStart.text}
               </p>
             </div>
