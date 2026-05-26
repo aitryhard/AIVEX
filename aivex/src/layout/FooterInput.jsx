@@ -149,9 +149,9 @@ function FooterInput() {
                 isRecording
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/80 border border-red-400/30 text-white hover:bg-red-500 transition"
                   : whisperFailed
-                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/20 cursor-not-allowed"
+                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/20"
                     : whisperLoading || isLoading || isTyping || isFree
-                      ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30 cursor-not-allowed"
+                      ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30"
                       : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
               }
               title={
@@ -170,12 +170,13 @@ function FooterInput() {
             </button>
 
             <button
-              disabled={isLoading || isTyping || !screenPeekAllowed}
               onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed ? startScreenPeek : () => setSubscriptionOpen(true)}
               className={
                 isScreenPeeking
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/80 border border-emerald-400/30 text-white hover:bg-emerald-500 transition"
-                  : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/60"
+                  : isFree
+                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30"
+                    : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
               }
               title={
                 isScreenPeeking
