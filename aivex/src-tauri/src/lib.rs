@@ -25,8 +25,11 @@ struct AudioState {
 struct BackendProcess(Mutex<Option<Child>>);
 
 fn get_backend_path() -> String {
-    if cfg!(debug_assertions) { "backend/main.py".into() }
-    else { "resources/backend/aivex-backend.exe".into() }
+    if cfg!(debug_assertions) {
+        "../backend/main.py".into()
+    } else {
+        "resources/backend/aivex-backend.exe".into()
+    }
 }
 
 fn start_backend(backend: &State<BackendProcess>) {
