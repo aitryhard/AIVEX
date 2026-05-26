@@ -5,6 +5,7 @@ import { HexColorPicker } from "react-colorful";
 import { THEME_PRESETS } from "../constants/themePresets";
 import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
+import { useChat } from "../contexts/ChatContext";
 import { STORAGE_KEYS } from "../constants/storageKeys";
 
 const FREE_THEMES = ["Midnight", "Slime", "Ocean", "Violet"];
@@ -24,6 +25,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
     openSubscriptionAt,
   } = useSettings();
   const { setProfileMenu, setProfileCreatorOpen } = useProfile();
+  const { messages } = useChat();
 
   const isFree = currentTier === "free";
   const themeScrollRef = useRef(null);
@@ -286,6 +288,20 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                 className="px-4 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition"
               >
                 Импорт
+              </button>
+              <button
+                onClick={async () => {
+                  if (!messages.length) return;
+                  const lines = messages.map((m) => {
+                    const role = m.role === "ai" ? "Aivex" : "Вы";
+                    const time = m.time ? `[${m.time}]` : "";
+                    return `${time} ${role}: ${m.text}`;
+                  });
+                  await window.aivexWindow?.saveTextFile(lines.join("\n\n---\n\n"), "aivex-chat.txt");
+                }}
+                className="px-4 py-2 rounded-2xl bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition"
+              >
+                Чат
               </button>
               <button
                 onClick={resetUiSettings}

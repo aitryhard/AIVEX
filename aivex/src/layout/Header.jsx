@@ -7,7 +7,6 @@ import {
   Pencil,
   Trash2,
   CreditCard,
-  Download,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -19,7 +18,7 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
-  const { clearChat, isTyping, isLoading, messages } = useChat();
+  const { clearChat, isTyping, isLoading } = useChat();
   const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, subscriptionOpen, openSubscriptionAt, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
@@ -163,23 +162,6 @@ function Header({ backendOnline }) {
             }`}
           >
             <Trash2 strokeWidth={1.8} size={15} />
-          </button>
-
-          <button
-            onClick={async () => {
-              if (messages.length === 0) return;
-              const lines = messages.map((m) => {
-                const role = m.role === "ai" ? "Aivex" : "Вы";
-                const time = m.time ? `[${m.time}]` : "";
-                return `${time} ${role}: ${m.text}`;
-              });
-              const content = lines.join("\n\n---\n\n");
-              await window.aivexWindow?.saveTextFile(content, "aivex-chat.txt");
-            }}
-            title="Экспорт чата"
-            className="no-drag w-9 h-9 rounded-2xl bg-white/10 border border-white/10 text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl flex items-center justify-center"
-          >
-            <Download strokeWidth={1.8} size={15} />
           </button>
 
           <div className="relative no-drag">
