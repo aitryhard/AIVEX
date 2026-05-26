@@ -134,10 +134,14 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
     setBuyingTier(tierId);
     try {
       const result = await window.aivexWindow?.createPayment(tierId);
-      if (result?.url) {
+      if (!result) {
+        alert("Ошибка: нет ответа от сервера");
+      } else if (result.url) {
         window.aivexWindow?.openExternal(result.url);
+      } else if (result.error || result.detail) {
+        alert("Ошибка: " + (result.error || result.detail));
       } else {
-        alert("Ошибка: " + (result?.error || result?.detail || "не удалось создать платёж"));
+        alert("Ошибка: неизвестный ответ сервера");
       }
     } catch {
       alert("Не удалось создать сессию оплаты");
