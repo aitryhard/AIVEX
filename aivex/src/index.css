@@ -2,6 +2,8 @@
 
 html, body {
   background: transparent;
+  overflow: hidden;
+  border-radius: 14px;
 }
 
 :root {
