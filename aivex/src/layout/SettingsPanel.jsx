@@ -20,7 +20,6 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
     activeColorTarget, setActiveColorTarget,
     appVersion,
     currentTier,
-    subscriptionExpiresAt,
     deviceId,
     openSubscriptionAt,
   } = useSettings();
@@ -294,26 +293,6 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
               >
                 Сброс
               </button>
-            </div>
-
-            <div className="border-t border-white/[0.06] pt-4 mt-4">
-              <h3 className="text-[11px] font-medium text-white/40 tracking-widest uppercase mb-3">Подписка</h3>
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-white/70 font-medium">
-                      {currentTier === "free" ? "Free" : currentTier === "pro" ? "Pro" : "Premium"}
-                    </div>
-                    <div className="text-[10px] text-white/30 mt-0.5">
-                      {currentTier === "free"
-                        ? "Бесплатный тариф"
-                        : subscriptionExpiresAt
-                          ? `Действует до ${new Date(subscriptionExpiresAt).toLocaleDateString("ru-RU")}`
-                          : "Активна"}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <button
