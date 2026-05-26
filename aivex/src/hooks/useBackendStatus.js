@@ -14,9 +14,7 @@ export function useBackendStatus(activationStatus) {
     async function checkBackend() {
       try {
         const online = await checkBackendHealth();
-
         setBackendOnline(online);
-
         if (online) {
           setRestartInfo(null);
         }
@@ -27,7 +25,7 @@ export function useBackendStatus(activationStatus) {
 
     checkBackend();
 
-    const interval = setInterval(checkBackend, 5000);
+    const interval = setInterval(checkBackend, 10000);
 
     return () => clearInterval(interval);
   }, [activationStatus]);

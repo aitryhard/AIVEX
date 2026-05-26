@@ -9,6 +9,7 @@ const {
   desktopCapturer,
   session,
   screen,
+  globalShortcut,
 } = require("electron");
 const fs = require("fs");
 const path = require("path");
@@ -31,9 +32,10 @@ const ACTIVATION_CACHE_TTL = 30000;
 
 let backendStartTime = 0;
 let backendStarting = false;
+let backendRestartCount = 0;
+let backendRestartTimer = null;
+const MAX_BACKEND_RESTART = 5;
 let isQuitting = false;
-
-/* Функция для проверки активации приложения с кэшированием на 30 секунд. */
 
 async function checkActivation() {
   const now = Date.now();
@@ -115,8 +117,6 @@ async function checkActivation() {
   }
 }
 
-/* Функция для запуска бэкенда в виде отдельного процесса. */
-
 async function startBackend() {
   if (backendStarting || backendProcess) return;
   backendStarting = true;
@@ -125,20 +125,14 @@ async function startBackend() {
     ? path.join(__dirname, "..", "backend", "main.py")
     : path.join(process.resourcesPath, "backend", "aivex-backend.exe");
 
-  /* Убиваем старые процессы, которые могли зависнуть на порту 8000 */
-
   try {
     require("child_process").execSync(
-      "taskkill /f /im python.exe 2>nul & taskkill /f /im aivex-backend.exe 2>nul",
-      { stdio: "ignore" }
+      `for /f "tokens=5" %a in ('netstat -ano ^| find ":8000 " ^| find "LISTENING"') do taskkill /f /pid %a 2>nul`,
+      { stdio: "ignore", timeout: 5000 }
     );
-  } catch {
-    /* если процесса нет — игнорируем */
-  }
+  } catch {}
 
-  /* Ждём чтобы порт освободился */
-
-  await new Promise((r) => setTimeout(r, 500));
+  await new Promise((r) => setTimeout(r, 1000));
 
   const spawnOptions = isDev
     ? {
@@ -161,6 +155,13 @@ async function startBackend() {
   const spawnArgs = isDev ? [backendPath] : [];
 
   console.log(`Backend: запуск из ${backendPath}`);
+
+  clearTimeout(backendRestartTimer);
+
+  backendRestartTimer = setTimeout(() => {
+    backendRestartCount = 0;
+    console.log("Backend: счётчик перезапусков сброшен (прожил 30с)");
+  }, 30000);
 
   backendProcess = spawn(spawnCommand, spawnArgs, spawnOptions);
 
@@ -186,7 +187,11 @@ async function startBackend() {
   backendProcess.on("exit", (code) => {
     const uptime = Date.now() - backendStartTime;
 
+    const stderrSummary = stderrData
+      ? stderrData.split("\n").filter(l => l.trim()).slice(-3).join(" | ")
+      : "";
     console.log(`Backend [PID ${pid}]: завершён с кодом ${code}, прожил ${uptime}мс`);
+    console.log(`Backend STDERR: ${stderrSummary || "(пусто)"}`);
 
     if (stderrData) {
       console.log(`Backend [PID ${pid}] STDERR:\n${stderrData}`);
@@ -196,17 +201,32 @@ async function startBackend() {
       console.log(`Backend [PID ${pid}] STDOUT:\n${stdoutData}`);
     }
 
-    /* Зануляем ссылку только если это всё ещё тот же процесс */
-
     if (backendProcess && backendProcess.pid === pid) {
       backendProcess = null;
     }
 
     if (isQuitting || code === 0) return;
 
+    if (uptime < 10000) {
+      backendRestartCount++;
+    }
+
+    if (backendRestartCount >= MAX_BACKEND_RESTART) {
+      console.log(`Backend: превышен лимит перезапусков (${MAX_BACKEND_RESTART}), останавливаю`);
+
+      mainWindow?.webContents.send("backend:restarting", {
+        attempt: backendRestartCount,
+        max: MAX_BACKEND_RESTART,
+        fatal: true,
+        error: stderrSummary || `Exit code: ${code}, uptime: ${uptime}ms`,
+      });
+      return;
+    }
+
     mainWindow?.webContents.send("backend:restarting", {
-      attempt: 1,
-      max: 5,
+      attempt: backendRestartCount,
+      max: MAX_BACKEND_RESTART,
+      error: stderrSummary || `Exit code: ${code}, uptime: ${uptime}ms`,
     });
   });
 
@@ -215,28 +235,33 @@ async function startBackend() {
   });
 }
 
-/* Функция для корректного завершения процесса бэкенда при выходе из приложения. */
-
 function stopBackend() {
   if (!backendProcess) return;
 
+  const pid = backendProcess.pid;
+
   try {
-    backendProcess.kill("SIGTERM");
+    backendProcess.kill();
   } catch (error) {
     console.log("Backend kill error:", error);
   }
 
   backendProcess = null;
-}
 
-/* Создание главного окна приложения с заданными параметрами и загрузкой интерфейса. */
+  try {
+    require("child_process").execSync(
+      `taskkill /f /pid ${pid} 2>nul`,
+      { stdio: "ignore", timeout: 3000 }
+    );
+  } catch {}
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({
     width: 430,
     height: 760,
-    minWidth: 380,
-    minHeight: 520,
+    minWidth: 430,
+    minHeight: 760,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -249,6 +274,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.cjs"),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: true,
     },
   });
 
@@ -308,6 +334,16 @@ app.whenReady().then(async () => {
       console.log("Update check failed:", error);
     });
   }
+
+  try {
+    globalShortcut.register("CommandOrControl+Shift+A", () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("screenpeek:toggle");
+      }
+    });
+  } catch (e) {
+    console.log("Global shortcut error:", e);
+  }
 });
 
 autoUpdater.on("update-available", () => {
@@ -318,6 +354,15 @@ autoUpdater.on("update-downloaded", () => {
   mainWindow?.webContents.send("update:downloaded");
 });
 
+autoUpdater.on("download-progress", (progress) => {
+  mainWindow?.webContents.send("update:download-progress", {
+    percent: Math.round(progress.percent),
+    bytesPerSecond: progress.bytesPerSecond,
+    transferred: progress.transferred,
+    total: progress.total,
+  });
+});
+
 autoUpdater.on("error", (err) => {
   console.log("Updater error:", err);
 });
@@ -325,19 +370,16 @@ autoUpdater.on("error", (err) => {
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
 
-/* Загрузка обновления после подтверждения пользователем */
-
 ipcMain.on("update:download", () => {
   autoUpdater.downloadUpdate();
 });
 
-/* Установка обновления после загрузки */
-
 ipcMain.on("update:install", () => {
-  autoUpdater.quitAndInstall();
+  stopBackend();
+  setTimeout(() => {
+    autoUpdater.quitAndInstall();
+  }, 1000);
 });
-
-/* УПРАВЛЕНИЕ ОКНОМ */
 
 ipcMain.on("window:minimize", () => {
   const win = BrowserWindow.getFocusedWindow();
@@ -350,8 +392,6 @@ ipcMain.on("window:complete-minimize", () => {
   if (win && !win.isDestroyed()) win.minimize();
 });
 
-/* Максимизация/восстановление окна по клику на кнопку */
-
 ipcMain.on("window:maximize", () => {
   const win = BrowserWindow.getFocusedWindow();
   if (!win) return;
@@ -363,19 +403,16 @@ ipcMain.on("window:maximize", () => {
   }
 });
 
-/* --- IGNORE --- */
-
 ipcMain.on("window:close", () => {
   const win = BrowserWindow.getFocusedWindow();
   if (win) win.close();
 });
 
-/* СОХРАНЕНИЕ В ФАЙЛ */
-
 ipcMain.handle("file:saveText", async (_event, content, suggestedName) => {
-  const name = suggestedName
-    ? suggestedName.replace(/[<>:"/\\|?*]/g, "_").slice(0, 100) + ".txt"
-    : "aivex-response.txt";
+  const base = suggestedName
+    ? suggestedName.replace(/[<>:"/\\|?*]/g, "_").slice(0, 100)
+    : "aivex-response";
+  const name = base.includes(".") ? base : base + ".txt";
 
   const result = await dialog.showSaveDialog(mainWindow, {
     title: "Сохранить ответ Aivex",
@@ -424,13 +461,18 @@ ipcMain.handle("image:open", async (_event, dataUrl) => {
   }
 });
 
-/* БУФЕР ОБМЕНА */
+ipcMain.handle("file:importJSON", async () => {
+  const result = await dialog.showOpenDialog({
+    filters: [{ name: "JSON", extensions: ["json"] }],
+    properties: ["openFile"],
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  return fs.readFileSync(result.filePaths[0], "utf-8");
+});
 
 ipcMain.handle("clipboard:getText", () => {
   return clipboard.readText();
 });
-
-/* Буфер обмена для изображений (скриншоты, копирование из других приложений) */
 
 ipcMain.handle("clipboard:getImage", () => {
   const image = clipboard.readImage();
@@ -442,27 +484,21 @@ ipcMain.handle("clipboard:getImage", () => {
   return image.toDataURL();
 });
 
-/* АКТИВАЦИЯ */
-
 ipcMain.handle("activation:getStatus", async () => {
   currentActivation = await checkActivation();
 
-  if (currentActivation.allowed && !backendProcess && !backendStarting) {
-    startBackend();
+  if (currentActivation.allowed && !backendProcess && !backendStarting && backendRestartCount < MAX_BACKEND_RESTART) {
+    await startBackend();
   }
 
   return currentActivation;
 });
-
-/* ПЕРЕЗАПУСК БЭКЕНДА */
 
 ipcMain.handle("backend:restart", async () => {
   stopBackend();
   await startBackend();
   return { restarted: true };
 });
-
-/* РАЗМЕР ОКНА */
 
 ipcMain.handle("window:resize", (_event, width, height) => {
   const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -478,6 +514,16 @@ ipcMain.handle("window:resetSize", () => {
   win.center();
 });
 
+ipcMain.handle("window:getAlwaysOnTop", () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return true;
+  return mainWindow.isAlwaysOnTop();
+});
+
+ipcMain.handle("window:setAlwaysOnTop", (_event, value) => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.setAlwaysOnTop(value);
+});
+
 ipcMain.handle("screen:getSize", () => {
   const primaryDisplay = screen.getPrimaryDisplay();
   return primaryDisplay.workAreaSize;
@@ -486,16 +532,68 @@ ipcMain.handle("screen:getSize", () => {
 ipcMain.handle("screen:capture", async () => {
   const sources = await desktopCapturer.getSources({
     types: ["screen"],
-    thumbnailSize: { width: 800, height: 600 },
+    thumbnailSize: { width: 1280, height: 720 },
   });
   if (!sources.length) return null;
-  return sources[0].thumbnail.toDataURL();
-});
 
-/* ОБЩЕЕ */
+  let img = sources[0].thumbnail;
+
+  const w = img.getSize().width;
+  const h = img.getSize().height;
+  const cropW = Math.min(640, w);
+  const cropH = Math.min(480, h);
+  const x = Math.floor((w - cropW) / 2);
+  const y = Math.floor((h - cropH) / 2);
+  img = img.crop({ x, y, width: cropW, height: cropH });
+
+  return img.toDataURL({ format: 'jpeg', quality: 0.6 });
+});
 
 ipcMain.handle("app:getVersion", () => {
   return app.getVersion();
+});
+
+ipcMain.handle("device:getId", () => {
+  return machineIdSync();
+});
+
+ipcMain.handle("shell:openExternal", async (_event, url) => {
+  try {
+    await shell.openExternal(url);
+  } catch (err) {
+    console.error("shell:openExternal error:", err);
+  }
+});
+
+ipcMain.handle("subscription:getStatus", async () => {
+  try {
+    const deviceId = machineIdSync();
+    const response = await fetch(
+      `${ACTIVATION_SERVER}/subscription/by-device/${deviceId}`,
+      { signal: AbortSignal.timeout(10000) },
+    );
+    return await response.json();
+  } catch {
+    return { tier: "free", is_active: false };
+  }
+});
+
+ipcMain.handle("payment:create", async (_event, tier) => {
+  try {
+    const deviceId = machineIdSync();
+    const response = await fetch(
+      `${ACTIVATION_SERVER}/payment/create`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_id: deviceId, tier }),
+        signal: AbortSignal.timeout(15000),
+      },
+    );
+    return await response.json();
+  } catch {
+    return { error: "server_unreachable" };
+  }
 });
 
 app.on("before-quit", () => {

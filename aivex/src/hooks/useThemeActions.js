@@ -1,3 +1,4 @@
+import { generateId } from "../utils/generateId";
 import { DEFAULT_UI_SETTINGS } from "../constants/defaultUiSettings";
 
 export function useThemeActions({
@@ -24,7 +25,7 @@ export function useThemeActions({
     const themeNumber = customThemes.length + 1;
 
     const finalTheme = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: newThemeName.trim() || `Стиль ${themeNumber}`,
       opacity: uiSettings.opacity,
       panelColor: uiSettings.panelColor,

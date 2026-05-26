@@ -4,12 +4,12 @@ export const DEFAULT_PROFILES = [
     desc: "Короткие быстрые ответы",
   },
   {
-    name: "Tutor",
-    desc: "Объясняет как преподаватель",
-  },
-  {
     name: "Detailed",
     desc: "Подробные глубокие ответы",
+  },
+  {
+    name: "Tutor",
+    desc: "Объясняет как преподаватель",
   },
   {
     name: "Code",

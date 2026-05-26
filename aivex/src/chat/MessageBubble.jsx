@@ -65,26 +65,28 @@ function MessageContent({
   const overflow = images.length > 3;
   const visibleImages = overflow && !showAllImages ? images.slice(0, 2) : images;
   const overflowCount = images.length - 2;
+  const isUser = item.role === "user";
+  const isStart = START_MESSAGES.includes(item.text);
 
   return (
     <div
       className={
-        item.role === "user"
+        isUser
           ? "flex flex-row-reverse justify-start items-end gap-2"
-          : "flex items-end gap-2"
+          : "group flex items-end gap-2"
       }
     >
       <motion.div
-        style={item.role === "user" ? userBubbleStyle : aiBubbleStyle}
+        style={isUser ? userBubbleStyle : aiBubbleStyle}
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -8, scale: 0.98 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className={
-          item.role === "user"
-            ? "relative group w-fit max-w-[82%] rounded-[28px] rounded-br-md border border-white/10 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-            : "relative group w-fit max-w-[88%] rounded-[28px] rounded-tl-md border border-white/10 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-        }
+          (isUser
+            ? "relative w-fit max-w-[82%] rounded-[28px] rounded-br-md border px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+            : "relative w-fit max-w-[88%] rounded-[28px] rounded-tl-md border px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+        )}
         >
           <div className="markdown-content text-sm text-white/90 break-words [&_p]:!m-0 [&_p]:!leading-[18px] [&_span]:!leading-[18px]">
           {item.type === "audio-status" ? (
@@ -93,8 +95,7 @@ function MessageContent({
               <span>{item.text}</span>
             </div>
           ) : (
-            item.text &&
-            (START_MESSAGES.includes(item.text) ? (
+            item.text && (isStart ? (
               <span className="italic text-white/60">{item.text}</span>
             ) : item.animate ? (
               <TypingText
@@ -168,19 +169,25 @@ function MessageContent({
             </div>
           )}
         </div>
-
-        {item.role === "ai" && !START_MESSAGES.includes(item.text) && item.text && (
-          <button
-            onClick={() => copyText(item.text)}
-            className="absolute top-2 -right-7 opacity-0 group-hover:opacity-100 transition w-6 h-6 rounded-full flex items-center justify-center text-white/35 hover:text-white/80 hover:bg-white/10"
-          >
-            {copiedText === item.text ? <Check size={13} /> : <Copy size={13} />}
-          </button>
-        )}
-
       </motion.div>
 
-      {item.time && (
+      {!isUser && !isStart && item.text && (
+        <div className="flex flex-col items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => copyText(item.text)}
+            className="opacity-0 group-hover:opacity-100 transition w-7 h-7 rounded-full flex items-center justify-center text-white/35 hover:text-white/80 hover:bg-white/10"
+          >
+            {copiedText === item.text ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+          {item.time && (
+            <div className="text-[10px] text-white/25 whitespace-nowrap">
+              {item.time}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isUser && item.time && (
         <div className="text-[10px] text-white/25 mb-1 shrink-0">
           {item.time}
         </div>
@@ -188,5 +195,4 @@ function MessageContent({
     </div>
   );
 }
-
 export default MessageBubble;

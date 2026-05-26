@@ -34,42 +34,37 @@ function ThemeCreatorPanel() {
       {themeCreatorOpen && (
         <motion.div
           ref={panelRef}
-          initial={{ opacity: 0, y: -12, scale: 0.98 }}
+          initial={{ opacity: 0, y: -12, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -12, scale: 0.98 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
+          exit={{ opacity: 0, y: -12, scale: 0.97 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="fixed top-[96px] right-5 w-[380px] z-50 rounded-3xl border backdrop-blur-2xl p-5"
           style={panelAccentStyle}
-          className="fixed top-[96px] right-5 w-[360px] z-50 rounded-2xl border border-white/10 backdrop-blur-2xl p-4 space-y-4 shadow-2xl"
         >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-medium text-white/80">
-                Создать стиль
-              </h2>
-
-              <p className="text-xs text-white/55 mt-1">
-                Сохранит текущие цвета и прозрачность.
-              </p>
-            </div>
-
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-sm font-medium text-white/70 tracking-wide">Создать стиль</h2>
             <button
               onClick={() => setThemeCreatorOpen(false)}
-              className="w-7 h-7 rounded-xl flex items-center justify-center text-white/35 hover:text-white hover:bg-white/10 transition"
+              className="w-6 h-6 rounded-xl flex items-center justify-center text-white/20 hover:text-white hover:bg-white/[0.06] transition"
             >
-              ×
+              ✕
             </button>
           </div>
+
+          <p className="text-xs text-white/40 mb-4 -mt-3">
+            Сохранит текущие цвета и прозрачность.
+          </p>
 
           <input
             value={newThemeName}
             onChange={(e) => setNewThemeName(e.target.value)}
             placeholder={`Стиль ${customThemes.length + 1}`}
-            className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-sm outline-none placeholder:text-white/35"
+            className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.015] px-4 py-3 text-sm text-white/70 placeholder:text-white/25 outline-none"
           />
 
           <button
             onClick={createCustomTheme}
-            className="w-full py-2 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
+            className="w-full mt-4 py-2.5 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90 transition"
           >
             Создать
           </button>

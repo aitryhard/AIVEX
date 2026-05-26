@@ -18,6 +18,11 @@ contextBridge.exposeInMainWorld("aivexWindow", {
     return () => ipcRenderer.removeListener("update:available", callback);
   },
 
+  onUpdateProgress: (callback) => {
+    ipcRenderer.on("update:download-progress", (_event, progress) => callback(progress));
+    return () => ipcRenderer.removeListener("update:download-progress", callback);
+  },
+
   onUpdateDownloaded: (callback) => {
     ipcRenderer.on("update:downloaded", callback);
     return () => ipcRenderer.removeListener("update:downloaded", callback);
@@ -30,6 +35,8 @@ contextBridge.exposeInMainWorld("aivexWindow", {
   installUpdate: () => ipcRenderer.send("update:install"),
 
   saveTextFile: (content, suggestedName) => ipcRenderer.invoke("file:saveText", content, suggestedName),
+
+  importJSON: () => ipcRenderer.invoke("file:importJSON"),
 
   openFile: (filePath) => ipcRenderer.invoke("file:open", filePath),
 
@@ -54,10 +61,21 @@ contextBridge.exposeInMainWorld("aivexWindow", {
     return () => ipcRenderer.removeListener("window:restored", callback);
   },
 
+  onScreenPeekToggle: (callback) => {
+    ipcRenderer.on("screenpeek:toggle", callback);
+    return () => ipcRenderer.removeListener("screenpeek:toggle", callback);
+  },
+
   completeMinimize: () => ipcRenderer.send("window:complete-minimize"),
 
   resizeWindow: (width, height) => ipcRenderer.invoke("window:resize", width, height),
   resetWindowSize: () => ipcRenderer.invoke("window:resetSize"),
   getScreenSize: () => ipcRenderer.invoke("screen:getSize"),
   captureScreen: () => ipcRenderer.invoke("screen:capture"),
+  getSubscription: () => ipcRenderer.invoke("subscription:getStatus"),
+  getAlwaysOnTop: () => ipcRenderer.invoke("window:getAlwaysOnTop"),
+  setAlwaysOnTop: (value) => ipcRenderer.invoke("window:setAlwaysOnTop", value),
+  getDeviceId: () => ipcRenderer.invoke("device:getId"),
+  openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url),
+  createPayment: (tier) => ipcRenderer.invoke("payment:create", tier),
 });

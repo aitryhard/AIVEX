@@ -1,4 +1,5 @@
 export function generateFilename(text) {
+  if (!text) return "aivex-response";
   const cleaned = text
     .replace(/```[\s\S]*?```/g, "")
     .replace(/#{1,6}\s*/g, "")

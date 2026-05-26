@@ -1,5 +1,21 @@
 import { useEffect, useState } from "react";
 
+function playDing() {
+  try {
+    const ctx = new AudioContext();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.frequency.value = 880;
+    o.type = "sine";
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.3);
+  } catch {}
+}
+
 export default function TypingText({
   text,
   copyCode,
@@ -27,6 +43,7 @@ export default function TypingText({
 
         if (onComplete) {
           onComplete();
+          playDing();
         }
       }
     }, 45);

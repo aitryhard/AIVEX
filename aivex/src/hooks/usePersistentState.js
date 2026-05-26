@@ -12,7 +12,7 @@ export function usePersistentState(key, initialValue) {
       try {
         return JSON.parse(saved);
       } catch {
-        return saved;
+        return initialValue;
       }
     } catch {
       return initialValue;

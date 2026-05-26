@@ -16,7 +16,8 @@ function SplashScreen({ showSplash, splashMode }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: -8 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="w-[180px] h-[180px] rounded-[32px] border border-white/10 bg-black/75 backdrop-blur-3xl shadow-2xl flex flex-col items-center justify-center"
+            className="w-[180px] h-[180px] rounded-3xl border border-white/[0.06] backdrop-blur-2xl shadow-2xl flex flex-col items-center justify-center"
+            style={{ background: "rgba(12,12,14,0.96)" }}
           >
             <div className="text-center">
               <motion.div

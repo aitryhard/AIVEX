@@ -4,7 +4,24 @@ import { MAX_CHAT_RESPONSE_LENGTH } from "../constants/chatLimits";
 import { getTime } from "../utils/getTime";
 import { buildCustomPrompt } from "../utils/buildCustomPrompt";
 import { generateFilename } from "../utils/generateFilename";
-import { sendChatRequest } from "../services/chatApi";
+import { generateId } from "../utils/generateId";
+import { sendChatRequest } from "../services/chatapi";
+
+function getDailyCount() {
+  const today = new Date().toISOString().slice(0, 10);
+  const raw = localStorage.getItem("aivex_daily_count");
+  if (!raw) return { date: today, count: 0 };
+  const parsed = JSON.parse(raw);
+  if (parsed.date !== today) return { date: today, count: 0 };
+  return parsed;
+}
+
+function setDailyCount(count) {
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem("aivex_daily_count", JSON.stringify({ date: today, count }));
+}
+
+const DAILY_FREE_LIMIT = 50;
 
 export function useChatActions({
   activationStatus,
@@ -19,8 +36,10 @@ export function useChatActions({
   setClipboardImages,
   customProfiles,
   profile,
+  currentTier,
 }) {
   const abortControllerRef = useRef(null);
+  const sendInProgressRef = useRef(false);
   const [copiedCode, setCopiedCode] = useState("");
   const [copiedText, setCopiedText] = useState("");
 
@@ -56,7 +75,31 @@ export function useChatActions({
 
   async function sendMessage() {
     if (!activationStatus?.allowed) return;
-    if (isLoading || isTyping) return;
+    if (isLoading || isTyping || sendInProgressRef.current) return;
+    sendInProgressRef.current = true;
+
+    if (currentTier === "free") {
+      const daily = getDailyCount();
+      if (daily.count >= DAILY_FREE_LIMIT) {
+        const resetTime = new Date();
+        resetTime.setDate(resetTime.getDate() + 1);
+        resetTime.setHours(0, 0, 0, 0);
+        const resetStr = resetTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: generateId(),
+            role: "ai",
+            text: `Достигнут лимит ${DAILY_FREE_LIMIT} сообщений в день. Тариф заработает завтра в ${resetStr}.`,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            profile: "System",
+          },
+        ]);
+        sendInProgressRef.current = false;
+        return;
+      }
+      setDailyCount(daily.count + 1);
+    }
 
     const userMessage = messageInputRef.current?.value.trim() || "";
 
@@ -72,7 +115,7 @@ export function useChatActions({
     setMessages((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: generateId(),
         role: "user",
         text: displayMessage,
         time: getTime(),
@@ -106,6 +149,7 @@ export function useChatActions({
             text: userMessage,
             profile,
             images: clipboardImages,
+            currentTier,
 
             customPrompt: activeCustomProfile
                 ? buildCustomPrompt(activeCustomProfile)
@@ -131,7 +175,7 @@ export function useChatActions({
         setMessages((prev) => [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             role: "ai",
             file: saveResult?.saved
               ? { path: saveResult.path, name: fileName + ".txt" }
@@ -156,7 +200,7 @@ export function useChatActions({
         setMessages((prev) => [
         ...prev,
         {
-            id: crypto.randomUUID(),
+            id: generateId(),
             role: "ai",
             text: data.response,
             time: getTime(),
@@ -176,7 +220,7 @@ export function useChatActions({
       setMessages((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           role: "ai",
           text: `Ошибка: ${error.message}`,
           time: getTime(),
@@ -184,6 +228,7 @@ export function useChatActions({
       ]);
     } finally {
       abortControllerRef.current = null;
+      sendInProgressRef.current = false;
     }
   }
 
@@ -194,5 +239,7 @@ export function useChatActions({
     copyCode,
     sendMessage,
     cancelRequest,
+    freeMessagesLeft: DAILY_FREE_LIMIT - getDailyCount().count,
+    freeMessagesLimit: DAILY_FREE_LIMIT,
   };
 }

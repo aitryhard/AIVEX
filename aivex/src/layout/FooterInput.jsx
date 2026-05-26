@@ -10,10 +10,13 @@ function FooterInput() {
     autoClipboard, setAutoClipboard,
     sendMessage, cancelRequest,
     startDesktopAudioRecording, stopDesktopAudioRecording,
-    whisperReady, whisperLoading,
+    whisperReady, whisperLoading, whisperFailed,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
+    freeMessagesLeft, freeMessagesLimit,
   } = useChat();
-  const { uiSettings } = useSettings();
+  const { uiSettings, currentTier, openSubscriptionAt } = useSettings();
+  const isFree = currentTier === "free";
+  const screenPeekAllowed = currentTier === "premium";
 
   return (
     <footer className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 via-black/25 to-transparent pointer-events-none">
@@ -64,10 +67,11 @@ function FooterInput() {
           </div>
         )}
 
-        <textarea
-          ref={messageInputRef}
-          onPaste={(e) => {
-            const items = Array.from(e.clipboardData.items);
+          <textarea
+            ref={messageInputRef}
+            onPaste={(e) => {
+              if (isFree) return;
+              const items = Array.from(e.clipboardData.items);
 
             const imageItems = items.filter((item) =>
               item.type.startsWith("image/"),
@@ -123,12 +127,13 @@ function FooterInput() {
           }}
         />
 
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-end justify-between mt-3">
           <div className="flex items-center gap-3">
             <button
               disabled={isLoading || isTyping}
-              onClick={() => imageInputRef.current?.click()}
-              className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/60"
+              onClick={() => isFree ? openSubscriptionAt("pro") : imageInputRef.current?.click()}
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:hover:bg-white/10 disabled:hover:text-white/60"
+              title={isFree ? "Изображения" : "Прикрепить изображение"}
             >
               <ImagePlus size={15} />
             </button>
@@ -138,38 +143,49 @@ function FooterInput() {
               onClick={
                 isRecording
                   ? stopDesktopAudioRecording
-                  : startDesktopAudioRecording
+                  : isFree
+                    ? () => openSubscriptionAt("pro")
+                    : whisperFailed || whisperLoading ? undefined : startDesktopAudioRecording
               }
               className={
                 isRecording
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/80 border border-red-400/30 text-white hover:bg-red-500 transition"
-                  : whisperLoading || isLoading || isTyping
-                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30 cursor-not-allowed"
-                    : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
+                  : whisperFailed
+                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/20"
+                    : whisperLoading || isLoading || isTyping || isFree
+                      ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30"
+                      : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
               }
               title={
                 isRecording
                   ? "Остановить запись"
-                  : whisperLoading
-                    ? "Загрузка модели распознавания..."
-                    : "Записать аудио рабочего стола"
+                  : isFree
+                    ? "Аудиозапись — откройте подписку Pro"
+                    : whisperFailed
+                      ? "Модель распознавания не загружена"
+                      : whisperLoading
+                        ? "Загрузка модели распознавания..."
+                        : "Записать аудио рабочего стола"
               }
             >
               <AudioLines size={15} />
             </button>
 
             <button
-              disabled={isLoading || isTyping}
-              onClick={isScreenPeeking ? stopScreenPeek : startScreenPeek}
+              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed && !isLoading && !isTyping ? startScreenPeek : screenPeekAllowed ? undefined : () => openSubscriptionAt("premium")}
               className={
                 isScreenPeeking
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/80 border border-emerald-400/30 text-white hover:bg-emerald-500 transition"
-                  : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/60"
+                  : isFree
+                    ? "w-8 h-8 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 text-white/30"
+                    : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
               }
               title={
                 isScreenPeeking
                   ? "Остановить показ экрана"
-                  : "Показать экран AI"
+                  : screenPeekAllowed
+                    ? "Показать экран AI"
+                    : "Screen Peek — откройте подписку Premium"
               }
             >
               <Monitor size={15} />
@@ -187,6 +203,8 @@ function FooterInput() {
               {autoClipboard ? "Буфер вкл." : "Буфер выкл."}
             </button>
           </div>
+
+          <div className="flex flex-col items-end gap-0.5">
 
           <button
             disabled={isTyping}
@@ -207,6 +225,7 @@ function FooterInput() {
           >
             {isLoading ? "Отменить" : "Отправить"}
           </button>
+        </div>
         </div>
       </div>
     </footer>
