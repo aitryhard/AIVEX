@@ -284,7 +284,7 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                   <button
                     onClick={() => {
                       setSettingsOpen(false);
-                      setTimeout(() => setSubscriptionOpen(true), 200);
+                      setTimeout(() => openSubscriptionAt(null), 200);
                     }}
                     className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-xs text-white/70 hover:text-white transition"
                   >
