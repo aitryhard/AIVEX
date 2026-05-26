@@ -69,6 +69,7 @@ function FooterInput() {
           <textarea
             ref={messageInputRef}
             onPaste={(e) => {
+              if (isFree) return;
               const items = Array.from(e.clipboardData.items);
 
             const imageItems = items.filter((item) =>
@@ -129,15 +130,15 @@ function FooterInput() {
           <div className="flex items-center gap-3">
             <button
               disabled={isLoading || isTyping}
-              onClick={() => imageInputRef.current?.click()}
-              className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/60"
-              title="Прикрепить изображение"
+              onClick={() => isFree ? openSubscriptionAt("pro") : imageInputRef.current?.click()}
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition disabled:opacity-30 disabled:hover:bg-white/10 disabled:hover:text-white/60"
+              title={isFree ? "Изображения — откройте подписку" : "Прикрепить изображение"}
             >
               <ImagePlus size={15} />
             </button>
 
             <button
-              disabled={(isLoading || isTyping || isFree) && !isRecording}
+              disabled={(isLoading || isTyping) && !isRecording}
               onClick={
                 isRecording
                   ? stopDesktopAudioRecording

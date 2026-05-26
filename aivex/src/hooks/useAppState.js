@@ -174,6 +174,7 @@ export function useAppState() {
     profile,
     setProfile,
     customProfiles,
+    currentTier,
   });
 
   useWindowPanels({

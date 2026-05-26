@@ -2,15 +2,15 @@ function MainShell({
   children,
   setIsDragging,
   setClipboardImages,
+  currentTier,
 }) {
   return (
     <main
       className="w-screen h-screen bg-transparent text-white overflow-hidden"
       onDragOver={(e) => {
         e.preventDefault();
-
+        if (currentTier === "free") return;
         const hasFiles = Array.from(e.dataTransfer.types).includes("Files");
-
         if (hasFiles) {
           setIsDragging(true);
         }
@@ -21,9 +21,9 @@ function MainShell({
       onDrop={(e) => {
         e.preventDefault();
         setIsDragging(false);
+        if (currentTier === "free") return;
 
         const files = Array.from(e.dataTransfer.files);
-
         if (files.length === 0) return;
 
         files.forEach((file) => {

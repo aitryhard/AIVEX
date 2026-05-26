@@ -76,6 +76,7 @@ function App() {
     <MainShell
       setIsDragging={setIsDragging}
       setClipboardImages={setClipboardImages}
+      currentTier={currentTier}
     >
       <ChatProvider value={chatContextValue}>
         <SettingsProvider value={settingsContextValue}>

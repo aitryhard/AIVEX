@@ -4,12 +4,15 @@ export function useProfileHotkeys({
   profile,
   setProfile,
   customProfiles,
+  currentTier,
 }) {
+  const freeProfiles = ["Quick", "Detailed"];
+
   useEffect(() => {
     function handleHotkeys(e) {
       if (!e.ctrlKey || !e.shiftKey) return;
 
-      const profiles = [
+      const allProfiles = [
         "Quick",
         "Tutor",
         "Detailed",
@@ -17,7 +20,17 @@ export function useProfileHotkeys({
         ...customProfiles.map((item) => item.name),
       ];
 
+      const profiles = currentTier === "free"
+        ? allProfiles.filter((p) => freeProfiles.includes(p))
+        : allProfiles;
+
+      if (profiles.length === 0) return;
+
       const currentIndex = profiles.indexOf(profile);
+      if (currentIndex === -1 && currentTier === "free") {
+        setProfile(freeProfiles[0]);
+        return;
+      }
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
