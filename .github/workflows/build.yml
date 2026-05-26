@@ -1,0 +1,74 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build-tauri:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install dependencies
+        working-directory: aivex
+        run: npm ci
+
+      - name: Build Tauri
+        working-directory: aivex
+        run: npx tauri build
+
+      - name: Upload installer
+        uses: softprops/action-gh-release@v2
+        with:
+          files: aivex/src-tauri/target/release/bundle/nsis/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-electron:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Node dependencies
+        working-directory: aivex
+        run: npm ci
+
+      - name: Install Python dependencies
+        working-directory: aivex/backend
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Build backend
+        working-directory: aivex/backend
+        run: pyinstaller aivex-backend.spec
+
+      - name: Build Electron
+        working-directory: aivex
+        run: npm run dist
+
+      - name: Upload installer
+        uses: softprops/action-gh-release@v2
+        with:
+          files: aivex/release/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

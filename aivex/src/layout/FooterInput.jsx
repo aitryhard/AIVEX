@@ -1,4 +1,4 @@
-import { ImagePlus, AudioLines, Monitor } from "lucide-react";
+import { ImagePlus, AudioLines, Monitor, Mic } from "lucide-react";
 import { useChat } from "../contexts/ChatContext";
 import { useSettings } from "../contexts/SettingsContext";
 
@@ -7,9 +7,11 @@ function FooterInput() {
     clipboardImages, setClipboardImages,
     messageInputRef, imageInputRef,
     isLoading, isTyping, isRecording,
+    isMicRecording,
     autoClipboard, setAutoClipboard,
     sendMessage, cancelRequest,
     startDesktopAudioRecording, stopDesktopAudioRecording,
+    startMicRecording, stopMicRecording,
     whisperReady, whisperLoading, whisperFailed,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
     freeMessagesLeft, freeMessagesLimit,
@@ -169,6 +171,18 @@ function FooterInput() {
               }
             >
               <AudioLines size={15} />
+            </button>
+
+            <button
+              onClick={isMicRecording ? stopMicRecording : startMicRecording}
+              className={
+                isMicRecording
+                  ? "w-8 h-8 rounded-xl flex items-center justify-center bg-red-500/80 border border-red-400/30 text-white hover:bg-red-500 transition"
+                  : "w-8 h-8 rounded-xl flex items-center justify-center bg-white/10 border border-white/10 text-white/60 hover:text-white hover:bg-white/15 transition"
+              }
+              title={isMicRecording ? "Остановить запись" : "Записать с микрофона"}
+            >
+              <Mic size={15} />
             </button>
 
             <button

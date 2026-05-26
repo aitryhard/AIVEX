@@ -168,8 +168,11 @@ export function useAppState() {
 
   const {
     isRecording,
+    isMicRecording,
     startDesktopAudioRecording,
     stopDesktopAudioRecording,
+    startMicRecording,
+    stopMicRecording,
   } = useAudioRecording({
     setMessages,
     setIsLoading,
@@ -280,6 +283,7 @@ export function useAppState() {
     chatEndRef,
     freeMessagesLeft, freeMessagesLimit,
     isRecording, startDesktopAudioRecording, stopDesktopAudioRecording,
+    isMicRecording, startMicRecording, stopMicRecording,
     whisperReady, whisperLoading, whisperFailed,
     autoClipboard, setAutoClipboard,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
