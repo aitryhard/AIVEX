@@ -100,7 +100,7 @@ function Header({ backendOnline }) {
         className="p-5 border-b border-white/10 flex items-center justify-between transition-[border-color] duration-300"
       >
         <div className="flex items-center">
-          <h1 className="text-[24px] leading-none tracking-tight font-['Space_Grotesk'] font-bold text-white">
+          <h1 className="text-[24px] leading-none tracking-tight font-['Space_Grotesk'] font-bold text-white [text-shadow:0_0_30px_rgba(255,255,255,0.12)]">
             Aivex
           </h1>
 
