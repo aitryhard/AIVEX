@@ -58,14 +58,8 @@ export async function initTauriBridge() {
     stopAudioCapture: () => invoke("stop_audio_capture"),
 
     onBackendRestart: (cb) => { listen("backend-restarting", ({ payload }) => cb(null, payload)); return () => {}; },
-    onBeforeMinimize: (cb) => {
-      const h = () => cb();
-      window.addEventListener("blur", h);
-      return () => window.removeEventListener("blur", h);
-    },
-    onRestore: (cb) => { listen("window-restored", cb); return () => {}; },
-    onScreenPeekToggle: (cb) => { listen("screenpeek-toggle", cb); return () => {}; },
-
+    onBeforeMinimize: () => () => {},
+    onRestore: () => () => {},
     completeMinimize: () => {},
   };
 }
