@@ -1,0 +1,57 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Aivex",
+  "version": "1.1.6",
+  "identifier": "com.aivex.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Aivex",
+        "width": 430,
+        "height": 760,
+        "minWidth": 430,
+        "minHeight": 760,
+        "resizable": true,
+        "decorations": false,
+        "transparent": false,
+        "alwaysOnTop": true,
+        "shadow": true,
+        "skipTaskbar": false,
+        "focus": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "nsis",
+    "icon": [
+      "../build/icon.ico",
+      "../build/icon.ico",
+      "../build/icon.ico",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/aitryhard/AIVEX/releases/latest/download/latest.json"
+      ],
+      "pubkey": ""
+    }
+  }
+}
