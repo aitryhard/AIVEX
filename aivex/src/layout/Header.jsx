@@ -16,7 +16,7 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
-  const { clearChat, isTyping } = useChat();
+  const { clearChat, isTyping, isLoading } = useChat();
   const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
@@ -44,7 +44,11 @@ function Header({ backendOnline }) {
   }
 
   function handleProfileClick(name) {
-    if (currentTier === "free" && !FREE_PROFILES.includes(name)) return;
+    if (currentTier === "free" && !FREE_PROFILES.includes(name)) {
+      setProfileMenu(false);
+      setSubscriptionOpen(true);
+      return;
+    }
     setProfile(name);
     setProfileMenu(false);
   }
@@ -127,10 +131,10 @@ function Header({ backendOnline }) {
 
           <button
             onMouseDown={() => setSubscriptionOpen(false)}
-            onClick={isTyping ? undefined : clearChat}
+            onClick={isTyping || isLoading ? undefined : clearChat}
             className={`no-drag px-4 py-2 rounded-2xl border text-xs transition backdrop-blur-xl ${
-              isTyping
-                ? "bg-white/5 border-white/5 text-white/30 cursor-not-allowed"
+              isTyping || isLoading
+                ? "bg-white/5 border-white/5 text-white/30"
                 : "bg-white/10 border-white/10 text-white/80 hover:bg-white/15 hover:text-white"
             }`}
           >

@@ -6,9 +6,10 @@ export function useClearChat({
   setSettingsOpen,
   setProfileMenu,
   isTyping,
+  isLoading,
 }) {
   function clearChat() {
-    if (isTyping) return;
+    if (isTyping || isLoading) return;
     if (messages.length === 0) return;
 
     setMessages([]);

@@ -134,6 +134,7 @@ export function useAppState() {
     setSettingsOpen,
     setProfileMenu,
     isTyping,
+    isLoading,
   });
 
   const { copiedCode, copiedText, copyText, copyCode, sendMessage, cancelRequest } =

@@ -13,7 +13,7 @@ function FooterInput() {
     whisperReady, whisperLoading, whisperFailed,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
   } = useChat();
-  const { uiSettings, currentTier } = useSettings();
+  const { uiSettings, currentTier, setSubscriptionOpen } = useSettings();
   const isFree = currentTier === "free";
   const screenPeekAllowed = currentTier === "premium";
 
@@ -141,7 +141,9 @@ function FooterInput() {
               onClick={
                 isRecording
                   ? stopDesktopAudioRecording
-                  : isFree || whisperFailed ? undefined : startDesktopAudioRecording
+                  : isFree
+                    ? () => setSubscriptionOpen(true)
+                    : whisperFailed || whisperLoading ? undefined : startDesktopAudioRecording
               }
               className={
                 isRecording
@@ -156,7 +158,7 @@ function FooterInput() {
                 isRecording
                   ? "Остановить запись"
                   : isFree
-                    ? "Аудио недоступно на Free"
+                    ? "Аудио — откройте подписку"
                     : whisperFailed
                       ? "Модель распознавания не загружена"
                       : whisperLoading
@@ -169,7 +171,7 @@ function FooterInput() {
 
             <button
               disabled={isLoading || isTyping || !screenPeekAllowed}
-              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed ? startScreenPeek : undefined}
+              onClick={isScreenPeeking ? stopScreenPeek : screenPeekAllowed ? startScreenPeek : () => setSubscriptionOpen(true)}
               className={
                 isScreenPeeking
                   ? "w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-500/80 border border-emerald-400/30 text-white hover:bg-emerald-500 transition"
