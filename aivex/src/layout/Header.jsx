@@ -16,7 +16,7 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
-  const { clearChat } = useChat();
+  const { clearChat, isTyping } = useChat();
   const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
@@ -51,7 +51,7 @@ function Header({ backendOnline }) {
 
   return (
     <>
-      <div className="h-8 flex items-center justify-between px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable">
+      <div className="h-8 flex items-center justify-between px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable transition-[border-color] duration-300">
         <div className="flex items-center no-drag">
           <button
             onClick={togglePin}
@@ -93,7 +93,7 @@ function Header({ backendOnline }) {
           setProfileCreatorOpen(false);
           setThemeCreatorOpen(false);
         }}
-        className="p-5 border-b border-white/10 flex items-center justify-between"
+        className="p-5 border-b border-white/10 flex items-center justify-between transition-[border-color] duration-300"
       >
         <div className="flex items-center">
           <h1 className="text-[24px] leading-none tracking-tight font-['Space_Grotesk'] font-bold text-white">
@@ -127,8 +127,12 @@ function Header({ backendOnline }) {
 
           <button
             onMouseDown={() => setSubscriptionOpen(false)}
-            onClick={clearChat}
-            className="no-drag px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-xs text-white/80 hover:bg-white/15 hover:text-white transition backdrop-blur-xl"
+            onClick={isTyping ? undefined : clearChat}
+            className={`no-drag px-4 py-2 rounded-2xl border text-xs transition backdrop-blur-xl ${
+              isTyping
+                ? "bg-white/5 border-white/5 text-white/30 cursor-not-allowed"
+                : "bg-white/10 border-white/10 text-white/80 hover:bg-white/15 hover:text-white"
+            }`}
           >
             Очистить
           </button>

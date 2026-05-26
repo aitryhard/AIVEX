@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-import { START_MESSAGES } from "../constants/startMessages";
 import { DEFAULT_UI_SETTINGS } from "../constants/defaultUiSettings";
 import { STORAGE_KEYS } from "../constants/storageKeys";
 import { THEME_PRESETS } from "../constants/themePresets";
@@ -23,10 +22,6 @@ import { useClearChat } from "./useClearChat";
 import { usePanelStyles } from "./usePanelStyles";
 import { useWhisperStatus } from "./useWhisperStatus";
 import { useScreenPeek } from "./useScreenPeek";
-
-function getRandomStartMessage() {
-  return START_MESSAGES[Math.floor(Math.random() * START_MESSAGES.length)];
-}
 
 export function useAppState() {
   const appVersion = useAppVersion();
@@ -88,13 +83,7 @@ export function useAppState() {
   const [profileMenu, setProfileMenu] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
 
-  const [messages, setMessages] = useState(() => [
-    {
-      role: "ai",
-      text: getRandomStartMessage(),
-      time: "",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,6 +133,7 @@ export function useAppState() {
     setClipboardImages,
     setSettingsOpen,
     setProfileMenu,
+    isTyping,
   });
 
   const { copiedCode, copiedText, copyText, copyCode, sendMessage, cancelRequest } =

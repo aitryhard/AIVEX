@@ -1,5 +1,3 @@
-import { START_MESSAGES } from "../constants/startMessages";
-
 export function useClearChat({
   messages,
   setMessages,
@@ -7,13 +5,11 @@ export function useClearChat({
   setClipboardImages,
   setSettingsOpen,
   setProfileMenu,
+  isTyping,
 }) {
   function clearChat() {
-    const hasRealMessages = messages.some(
-      (msg) => !START_MESSAGES.includes(msg.text),
-    );
-
-    if (!hasRealMessages) return;
+    if (isTyping) return;
+    if (messages.length === 0) return;
 
     setMessages([]);
 

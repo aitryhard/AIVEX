@@ -105,29 +105,23 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-runnable-track {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--color-white) 8%, transparent);
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  margin-top: -6px;
-  width: 18px;
-  height: 18px;
+  margin-top: -5px;
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 0 12px rgba(255, 255, 255, 0.15),
-    0 4px 18px rgba(0, 0, 0, 0.25);
-  transition: 0.2s ease;
+  background: color-mix(in srgb, var(--color-white) 85%, transparent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.08);
-  background: white;
 }
 
 input[type="range"]::-webkit-slider-thumb:active {
@@ -294,6 +288,29 @@ body.screen-peek-active {
   --color-black: #fff;
 }
 
+[data-theme="light"] pre,
+[data-theme="light"] code,
+[data-theme="light"] [class*="language-"],
+[data-theme="light"] [class*="token"] {
+  color: #e0e0e0 !important;
+}
+
+[data-theme="light"] .react-colorful {
+  --rc-color-border: rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .react-colorful__saturation,
+[data-theme="light"] .react-colorful__hue,
+[data-theme="light"] .react-colorful__alpha {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .react-colorful__hue-pointer,
+[data-theme="light"] .react-colorful__alpha-pointer,
+[data-theme="light"] .react-colorful__saturation-pointer {
+  border-color: rgba(0, 0, 0, 0.3) !important;
+}
+
 [data-theme="light"] ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.08);
 }
@@ -319,9 +336,6 @@ body.screen-peek-active {
 }
 
 [data-theme="light"] input[type="range"]::-webkit-slider-thumb {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  margin-top: -5px;
+  background: var(--color-white);
+  border-color: rgba(0, 0, 0, 0.2);
 }

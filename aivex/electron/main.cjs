@@ -37,8 +37,6 @@ let backendRestartTimer = null;
 const MAX_BACKEND_RESTART = 5;
 let isQuitting = false;
 
-/* Функция для проверки активации приложения с кэшированием на 30 секунд. */
-
 async function checkActivation() {
   const now = Date.now();
 
@@ -119,8 +117,6 @@ async function checkActivation() {
   }
 }
 
-/* Функция для запуска бэкенда в виде отдельного процесса. */
-
 async function startBackend() {
   if (backendStarting || backendProcess) return;
   backendStarting = true;
@@ -129,16 +125,12 @@ async function startBackend() {
     ? path.join(__dirname, "..", "backend", "main.py")
     : path.join(process.resourcesPath, "backend", "aivex-backend.exe");
 
-  /* Освобождаем порт 8000 — убиваем процесс который его занимает */
-
   try {
     require("child_process").execSync(
       `for /f "tokens=5" %a in ('netstat -ano ^| find ":8000 " ^| find "LISTENING"') do taskkill /f /pid %a 2>nul`,
       { stdio: "ignore", timeout: 5000 }
     );
-  } catch { /* если порт свободен — игнорируем */ }
-
-  /* Ждём чтобы порт освободился */
+  } catch {}
 
   await new Promise((r) => setTimeout(r, 1000));
 
@@ -209,15 +201,11 @@ async function startBackend() {
       console.log(`Backend [PID ${pid}] STDOUT:\n${stdoutData}`);
     }
 
-    /* Зануляем ссылку только если это всё ещё тот же процесс */
-
     if (backendProcess && backendProcess.pid === pid) {
       backendProcess = null;
     }
 
     if (isQuitting || code === 0) return;
-
-    /* Если процесс прожил меньше 10 секунд — считаем это ошибкой */
 
     if (uptime < 10000) {
       backendRestartCount++;
@@ -247,8 +235,6 @@ async function startBackend() {
   });
 }
 
-/* Функция для корректного завершения процесса бэкенда при выходе из приложения. */
-
 function stopBackend() {
   if (!backendProcess) return;
 
@@ -262,17 +248,13 @@ function stopBackend() {
 
   backendProcess = null;
 
-  /* На Windows SIGTERM часто не убивает процесс, дублируем taskkill по PID */
-
   try {
     require("child_process").execSync(
       `taskkill /f /pid ${pid} 2>nul`,
       { stdio: "ignore", timeout: 3000 }
     );
-  } catch { /* уже завершён */ }
+  } catch {}
 }
-
-/* Создание главного окна приложения с заданными параметрами и загрузкой интерфейса. */
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -353,8 +335,6 @@ app.whenReady().then(async () => {
     });
   }
 
-  /* Глобальные горячие клавиши */
-
   try {
     globalShortcut.register("CommandOrControl+Shift+A", () => {
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -390,13 +370,9 @@ autoUpdater.on("error", (err) => {
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
 
-/* Загрузка обновления после подтверждения пользователем */
-
 ipcMain.on("update:download", () => {
   autoUpdater.downloadUpdate();
 });
-
-/* Установка обновления после загрузки */
 
 ipcMain.on("update:install", () => {
   stopBackend();
@@ -404,8 +380,6 @@ ipcMain.on("update:install", () => {
     autoUpdater.quitAndInstall();
   }, 1000);
 });
-
-/* УПРАВЛЕНИЕ ОКНОМ */
 
 ipcMain.on("window:minimize", () => {
   const win = BrowserWindow.getFocusedWindow();
@@ -418,8 +392,6 @@ ipcMain.on("window:complete-minimize", () => {
   if (win && !win.isDestroyed()) win.minimize();
 });
 
-/* Максимизация/восстановление окна по клику на кнопку */
-
 ipcMain.on("window:maximize", () => {
   const win = BrowserWindow.getFocusedWindow();
   if (!win) return;
@@ -431,14 +403,10 @@ ipcMain.on("window:maximize", () => {
   }
 });
 
-/* --- IGNORE --- */
-
 ipcMain.on("window:close", () => {
   const win = BrowserWindow.getFocusedWindow();
   if (win) win.close();
 });
-
-/* СОХРАНЕНИЕ В ФАЙЛ */
 
 ipcMain.handle("file:saveText", async (_event, content, suggestedName) => {
   const name = suggestedName
@@ -492,13 +460,9 @@ ipcMain.handle("image:open", async (_event, dataUrl) => {
   }
 });
 
-/* БУФЕР ОБМЕНА */
-
 ipcMain.handle("clipboard:getText", () => {
   return clipboard.readText();
 });
-
-/* Буфер обмена для изображений (скриншоты, копирование из других приложений) */
 
 ipcMain.handle("clipboard:getImage", () => {
   const image = clipboard.readImage();
@@ -510,8 +474,6 @@ ipcMain.handle("clipboard:getImage", () => {
   return image.toDataURL();
 });
 
-/* АКТИВАЦИЯ */
-
 ipcMain.handle("activation:getStatus", async () => {
   currentActivation = await checkActivation();
 
@@ -522,15 +484,11 @@ ipcMain.handle("activation:getStatus", async () => {
   return currentActivation;
 });
 
-/* ПЕРЕЗАПУСК БЭКЕНДА */
-
 ipcMain.handle("backend:restart", async () => {
   stopBackend();
   await startBackend();
   return { restarted: true };
 });
-
-/* РАЗМЕР ОКНА */
 
 ipcMain.handle("window:resize", (_event, width, height) => {
   const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -570,8 +528,6 @@ ipcMain.handle("screen:capture", async () => {
 
   let img = sources[0].thumbnail;
 
-  /* Вырезаем центральную область (примерно 50% экрана) */
-
   const w = img.getSize().width;
   const h = img.getSize().height;
   const cropW = Math.min(640, w);
@@ -582,8 +538,6 @@ ipcMain.handle("screen:capture", async () => {
 
   return img.toDataURL({ format: 'jpeg', quality: 0.6 });
 });
-
-/* ОБЩЕЕ */
 
 ipcMain.handle("app:getVersion", () => {
   return app.getVersion();
@@ -600,8 +554,6 @@ ipcMain.handle("shell:openExternal", async (_event, url) => {
     console.error("shell:openExternal error:", err);
   }
 });
-
-/* ПОДПИСКА */
 
 ipcMain.handle("subscription:getStatus", async () => {
   try {

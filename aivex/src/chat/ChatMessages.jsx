@@ -64,13 +64,20 @@ function ChatMessages({ renderMarkdown }) {
       <AnimatePresence>
         {showStart && hasOnlyStartMessages && (
           <motion.div
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            className="w-fit rounded-[28px] rounded-tl-md bg-white/10 border border-white/10 px-4 py-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="flex items-center justify-center w-full pt-16"
           >
-            <span className="text-sm italic text-white/60">{showStart.text}</span>
+            <div className="text-center">
+              <div className="text-[22px] font-['Space_Grotesk'] font-bold tracking-tight text-white/15">
+                Aivex
+              </div>
+              <p className="text-sm text-white/20 mt-2 italic">
+                {showStart.text}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
