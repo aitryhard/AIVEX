@@ -148,7 +148,7 @@ export function useAppState() {
     isLoading,
   });
 
-  const { copiedCode, copiedText, copyText, copyCode, sendMessage, cancelRequest } =
+  const { copiedCode, copiedText, copyText, copyCode, sendMessage, cancelRequest, freeMessagesLeft, freeMessagesLimit } =
     useChatActions({
       activationStatus,
       isLoading,
@@ -278,6 +278,7 @@ export function useAppState() {
     sendMessage, cancelRequest, copyText, copyCode,
     clearChat,
     chatEndRef,
+    freeMessagesLeft, freeMessagesLimit,
     isRecording, startDesktopAudioRecording, stopDesktopAudioRecording,
     whisperReady, whisperLoading, whisperFailed,
     autoClipboard, setAutoClipboard,

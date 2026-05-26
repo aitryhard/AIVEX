@@ -5,6 +5,7 @@ import {
   Pin,
   SlidersHorizontal,
   Pencil,
+  Trash2,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -132,13 +133,34 @@ function Header({ backendOnline }) {
           <button
             onMouseDown={() => setSubscriptionOpen(false)}
             onClick={isTyping || isLoading ? undefined : clearChat}
-            className={`no-drag px-4 py-2 rounded-2xl border text-xs transition backdrop-blur-xl ${
+            title="Очистить чат"
+            className={`no-drag w-9 h-9 rounded-2xl border transition backdrop-blur-xl flex items-center justify-center ${
               isTyping || isLoading
                 ? "bg-white/5 border-white/5 text-white/30"
                 : "bg-white/10 border-white/10 text-white/80 hover:bg-white/15 hover:text-white"
             }`}
           >
-            Очистить
+            <Trash2 strokeWidth={1.8} size={15} />
+          </button>
+
+          <button
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setProfileMenu(false);
+              setProfileCreatorOpen(false);
+              setThemeCreatorOpen(false);
+              setSubscriptionOpen(false);
+              openSubscriptionAt(null);
+            }}
+            className={`no-drag px-3 py-2 rounded-2xl border text-xs font-medium transition backdrop-blur-xl ${
+              currentTier === "free"
+                ? "border-amber-500/20 bg-amber-500/10 text-amber-300/80 hover:bg-amber-500/15"
+                : currentTier === "pro"
+                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300/80 hover:bg-emerald-500/15"
+                  : "border-violet-500/20 bg-violet-500/10 text-violet-300/80 hover:bg-violet-500/15"
+            }`}
+          >
+            {currentTier === "free" ? "Free" : currentTier === "pro" ? "Pro" : "Premium"}
           </button>
 
           <div className="relative no-drag">

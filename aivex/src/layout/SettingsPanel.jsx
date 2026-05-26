@@ -281,15 +281,6 @@ const SettingsPanel = forwardRef(function SettingsPanel(props, ref) {
                           : "Активна"}
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      setSettingsOpen(false);
-                      setTimeout(() => openSubscriptionAt(null), 200);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-xs text-white/70 hover:text-white transition"
-                  >
-                    {currentTier === "free" ? "Оформить" : "Управлять"}
-                  </button>
                 </div>
               </div>
             </div>

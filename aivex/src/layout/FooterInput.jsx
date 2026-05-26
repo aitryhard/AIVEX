@@ -12,6 +12,7 @@ function FooterInput() {
     startDesktopAudioRecording, stopDesktopAudioRecording,
     whisperReady, whisperLoading, whisperFailed,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
+    freeMessagesLeft, freeMessagesLimit,
   } = useChat();
   const { uiSettings, currentTier, openSubscriptionAt } = useSettings();
   const isFree = currentTier === "free";
@@ -202,6 +203,12 @@ function FooterInput() {
               {autoClipboard ? "Буфер вкл." : "Буфер выкл."}
             </button>
           </div>
+
+          {isFree && (
+            <span className={`text-[10px] px-2 py-1 rounded-lg ${freeMessagesLeft <= 5 ? "text-red-300/80 bg-red-500/10" : "text-white/30 bg-white/[0.04]"}`}>
+              {freeMessagesLeft}/{freeMessagesLimit}
+            </span>
+          )}
 
           <button
             disabled={isTyping}

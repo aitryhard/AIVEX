@@ -234,5 +234,7 @@ export function useChatActions({
     copyCode,
     sendMessage,
     cancelRequest,
+    freeMessagesLeft: DAILY_FREE_LIMIT - getDailyCount().count,
+    freeMessagesLimit: DAILY_FREE_LIMIT,
   };
 }
