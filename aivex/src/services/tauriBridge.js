@@ -21,14 +21,6 @@ export async function initTauriBridge() {
     resizeWindow: (w, h) => invoke("resize_window", { width: w, height: h }),
     resetWindowSize: () => invoke("reset_window_size"),
 
-    startDragging: () => {
-      if (window.__TAURI_INTERNALS__) {
-        window.__TAURI_INTERNALS__.invoke("plugin:window|start_dragging");
-      }
-    },
-    getScreenSize: () => invoke("get_screen_size"),
-    captureScreen: () => invoke("capture_screen"),
-
     saveTextFile: (c, n) => invoke("save_text_file", { content: c, name: n }),
     openExternal: (url) => invoke("open_external", { url }),
     openFile: (p) => invoke("open_external", { url: p }),
