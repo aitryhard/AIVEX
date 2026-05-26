@@ -57,7 +57,10 @@ function Header({ backendOnline }) {
 
   return (
     <>
-      <div data-tauri-drag-region className="h-8 flex items-center justify-between px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl draggable transition-[border-color] duration-300">
+      <div
+        data-tauri-drag-region
+        onMouseDown={() => window.aivexWindow?.startDragging()}
+        className="h-8 flex items-center justify-between px-4 pt-[2px] pb-[2px] border-b border-white/10 bg-black/30 backdrop-blur-2xl transition-[border-color] duration-300">
         <div className="flex items-center no-drag">
           <button
             onClick={togglePin}
