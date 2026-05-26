@@ -84,10 +84,10 @@ function ChatMessages({ renderMarkdown }) {
         setProfileCreatorOpen(false);
         setSubscriptionOpen(false);
       }}
-      className="flex-1 flex flex-col overflow-hidden"
+      className="flex-1 flex flex-col overflow-hidden relative"
     >
       {filtered.length > 6 && (
-        <div className="flex items-center gap-2 px-4 pt-2 shrink-0">
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center gap-2 px-4 pt-2 pb-2 bg-gradient-to-b from-black/30 to-transparent">
           {searchOpen ? (
             <div className="flex items-center gap-2 flex-1">
               <input
