@@ -19,7 +19,7 @@
         "minHeight": 760,
         "resizable": true,
         "decorations": false,
-        "transparent": true,
+        "transparent": false,
         "alwaysOnTop": true,
         "shadow": true,
         "skipTaskbar": false,
