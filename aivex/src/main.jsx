@@ -14,7 +14,11 @@ window.onunhandledrejection = (event) => {
 };
 
 async function boot() {
-  await initTauriBridge();
+  try {
+    await initTauriBridge();
+  } catch (e) {
+    console.error("Tauri bridge init failed:", e);
+  }
 
   createRoot(document.getElementById("root")).render(
     <StrictMode>
