@@ -4,8 +4,6 @@ import { listen } from "@tauri-apps/api/event";
 export async function initTauriBridge() {
   if (!window.__TAURI_INTERNALS__) return;
 
-  const unlisteners = [];
-
   window.aivexWindow = {
     minimize: () => invoke("minimize"),
     maximize: () => invoke("maximize"),
@@ -18,60 +16,33 @@ export async function initTauriBridge() {
     createPayment: (tier) => invoke("create_payment", { tier }),
 
     getAlwaysOnTop: () => invoke("get_always_on_top"),
-    setAlwaysOnTop: (value) => invoke("set_always_on_top", { value }),
+    setAlwaysOnTop: (v) => invoke("set_always_on_top", { value: v }),
 
-    resizeWindow: (width, height) =>
-      invoke("resize_window", { width, height }),
+    resizeWindow: (w, h) => invoke("resize_window", { width: w, height: h }),
     resetWindowSize: () => invoke("reset_window_size"),
     getScreenSize: () => invoke("get_screen_size"),
     captureScreen: () => invoke("capture_screen"),
 
-    saveTextFile: (content, name) =>
-      invoke("save_text_file", { content, name }),
+    saveTextFile: (c, n) => invoke("save_text_file", { content: c, name: n }),
     openExternal: (url) => invoke("open_external", { url }),
-    openFile: (path) => invoke("open_external", { url: path }),
-
-    createPayment: (tier) => invoke("create_payment", { tier }),
+    openFile: (p) => invoke("open_external", { url: p }),
 
     downloadUpdate: async () => {
-      try {
-        const { check } = await import("@tauri-apps/plugin-updater");
-        const update = await check();
-        if (update) await update.downloadAndInstall();
-      } catch (_) {}
+      try { const { check } = await import("@tauri-apps/plugin-updater"); const u = await check(); if (u) await u.downloadAndInstall(); } catch (e) {}
     },
     installUpdate: async () => {
-      try {
-        const { check } = await import("@tauri-apps/plugin-updater");
-        const update = await check();
-        if (update) await update.install();
-      } catch (_) {}
+      try { const { check } = await import("@tauri-apps/plugin-updater"); const u = await check(); if (u) await u.install(); } catch (e) {}
     },
 
-    onUpdateAvailable: (cb) => {
-      listen("update-available", cb).then((unlisten) => unlisteners.push(unlisten));
-      return () => {};
-    },
-    onUpdateProgress: (cb) => {
-      listen("update-progress", ({ payload }) => cb(payload)).then((unlisten) => unlisteners.push(unlisten));
-      return () => {};
-    },
-    onUpdateDownloaded: (cb) => {
-      listen("update-downloaded", cb).then((unlisten) => unlisteners.push(unlisten));
-      return () => {};
-    },
+    onUpdateAvailable: (cb) => { listen("update-available", cb); return () => {}; },
+    onUpdateProgress: (cb) => { listen("update-progress", ({ payload }) => cb(payload)); return () => {}; },
+    onUpdateDownloaded: (cb) => { listen("update-downloaded", cb); return () => {}; },
 
     getClipboardText: async () => {
-      try {
-        const { readText } = await import("@tauri-apps/plugin-clipboard-manager");
-        return await readText();
-      } catch { return ""; }
+      try { const { readText } = await import("@tauri-apps/plugin-clipboard-manager"); return await readText(); } catch (e) { return ""; }
     },
     getClipboardImage: async () => {
-      try {
-        const { readImageBase64 } = await import("@tauri-apps/plugin-clipboard-manager");
-        return await readImageBase64();
-      } catch { return null; }
+      try { const { readImageBase64 } = await import("@tauri-apps/plugin-clipboard-manager"); return await readImageBase64(); } catch (e) { return null; }
     },
 
     restartBackend: () => invoke("restart_backend"),
@@ -80,77 +51,14 @@ export async function initTauriBridge() {
     startAudioCapture: () => invoke("start_audio_capture"),
     stopAudioCapture: () => invoke("stop_audio_capture"),
 
-    onBackendRestart: (cb) => {
-      listen("backend-restarting", ({ payload }) => cb(null, payload)).then((unlisten) => unlisteners.push(unlisten));
-      return () => {};
-    },
-
+    onBackendRestart: (cb) => { listen("backend-restarting", ({ payload }) => cb(null, payload)); return () => {}; },
     onBeforeMinimize: (cb) => {
-      const handler = () => cb();
-      window.addEventListener("blur", handler);
-      return () => window.removeEventListener("blur", handler);
+      const h = () => cb();
+      window.addEventListener("blur", h);
+      return () => window.removeEventListener("blur", h);
     },
-    onRestore: (cb) => {
-      listen("window-restored", cb).then((unlisten) => unlisteners.push(unlisten));
-      return () => {};
-    },
-    onScreenPeekToggle: (cb) => {
-      listen("screenpeek-toggle", cb).then((unlisten) => unlisteners.push(unlisten));
-      return () => {};
-    },
-
-    completeMinimize: () => {},
-  };
-}
-      } catch (_) {}
-    },
-    installUpdate: async () => {
-      try {
-        const { check } = await import("@tauri-apps/plugin-updater");
-        const update = await check();
-        if (update) {
-          await update.install();
-        }
-      } catch (_) {}
-    },
-    onUpdateAvailable: (cb) => listen("update-available", cb),
-    onUpdateProgress: (cb) => listen("update-progress", ({ payload }) => cb(payload)),
-    onUpdateDownloaded: (cb) => listen("update-downloaded", cb),
-
-    getClipboardText: async () => {
-      try {
-        const { readText } = await import("@tauri-apps/plugin-clipboard-manager");
-        return await readText();
-      } catch {
-        return "";
-      }
-    },
-    getClipboardImage: async () => {
-      try {
-        const { readImageBase64 } = await import("@tauri-apps/plugin-clipboard-manager");
-        return await readImageBase64();
-      } catch {
-        return null;
-      }
-    },
-
-    restartBackend: () => invoke("restart_backend"),
-    importJSON: () => invoke("import_json"),
-
-    startAudioCapture: () => invoke("start_audio_capture"),
-    stopAudioCapture: () => invoke("stop_audio_capture"),
-    onBackendRestart: (cb) => listen("backend-restarting", ({ payload }) => cb(null, payload)),
-
-    onBeforeMinimize: (cb) => {
-      const handler = () => cb();
-      window.addEventListener("tauri://blur", handler);
-      return () => window.removeEventListener("tauri://blur", handler);
-    },
-    onRestore: (cb) => {
-      listen("window-restored", cb);
-      return () => {};
-    },
-    onScreenPeekToggle: (cb) => listen("screenpeek-toggle", cb),
+    onRestore: (cb) => { listen("window-restored", cb); return () => {}; },
+    onScreenPeekToggle: (cb) => { listen("screenpeek-toggle", cb); return () => {}; },
 
     completeMinimize: () => {},
   };
