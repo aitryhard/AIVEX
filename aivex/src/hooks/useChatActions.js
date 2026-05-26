@@ -91,6 +91,7 @@ export function useChatActions({
             profile: "System",
           },
         ]);
+        sendInProgressRef.current = false;
         return;
       }
       setDailyCount(daily.count + 1);
