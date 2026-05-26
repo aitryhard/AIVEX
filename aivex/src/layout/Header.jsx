@@ -18,7 +18,7 @@ import { useProfile } from "../contexts/ProfileContext";
 
 function Header({ backendOnline }) {
   const { clearChat, isTyping, isLoading } = useChat();
-  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, openSubscriptionAt, currentTier } = useSettings();
+  const { panelAccentStyle, setSettingsOpen, setThemeCreatorOpen, setSubscriptionOpen, subscriptionOpen, openSubscriptionAt, currentTier } = useSettings();
   const FREE_PROFILES = ["Quick", "Detailed"];
 
   const {
@@ -149,8 +149,12 @@ function Header({ backendOnline }) {
               setProfileMenu(false);
               setProfileCreatorOpen(false);
               setThemeCreatorOpen(false);
-              setSubscriptionOpen(false);
-              openSubscriptionAt(null);
+              setSettingsOpen(false);
+              if (subscriptionOpen) {
+                setSubscriptionOpen(false);
+              } else {
+                openSubscriptionAt(null);
+              }
             }}
             className={`no-drag px-3 py-2 rounded-2xl border text-xs font-medium transition backdrop-blur-xl ${
               currentTier === "free"
