@@ -136,8 +136,8 @@ const SubscriptionPanel = forwardRef(function SubscriptionPanel(
       const result = await window.aivexWindow?.createPayment(tierId);
       if (result?.url) {
         window.aivexWindow?.openExternal(result.url);
-      } else if (result?.error) {
-        alert("Ошибка: " + result.error);
+      } else {
+        alert("Ошибка: " + (result?.error || result?.detail || "не удалось создать платёж"));
       }
     } catch {
       alert("Не удалось создать сессию оплаты");
