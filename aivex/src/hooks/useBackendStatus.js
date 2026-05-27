@@ -6,11 +6,6 @@ export function useBackendStatus(activationStatus) {
   const [restartInfo, setRestartInfo] = useState(null);
 
   useEffect(() => {
-    if (!activationStatus?.allowed) {
-      setBackendOnline(false);
-      return;
-    }
-
     async function checkBackend() {
       try {
         const online = await checkBackendHealth();

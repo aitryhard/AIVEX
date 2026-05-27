@@ -11,7 +11,6 @@ export async function initTauriBridge() {
 
     getVersion: () => invoke("get_version"),
     getDeviceId: () => invoke("get_device_id"),
-    getActivationStatus: () => invoke("get_activation_status"),
     getSubscription: () => invoke("get_subscription"),
     createPayment: (tier) => invoke("create_payment", { tier }),
 
@@ -37,10 +36,10 @@ export async function initTauriBridge() {
     onUpdateDownloaded: (cb) => { listen("update-downloaded", cb); return () => {}; },
 
     getClipboardText: async () => {
-      try { const { readText } = await import("@tauri-apps/plugin-clipboard-manager"); return await readText(); } catch (e) { return ""; }
+      return "";
     },
     getClipboardImage: async () => {
-      try { const { readImageBase64 } = await import("@tauri-apps/plugin-clipboard-manager"); return await readImageBase64(); } catch (e) { return null; }
+      return null;
     },
 
     restartBackend: () => invoke("restart_backend"),

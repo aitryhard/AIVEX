@@ -5,7 +5,6 @@ import { STORAGE_KEYS } from "../constants/storageKeys";
 import { THEME_PRESETS } from "../constants/themePresets";
 
 import { useBackendStatus } from "./useBackendStatus";
-import { useActivation } from "./useActivation";
 import { useAppVersion } from "./useAppVersion";
 import { useUpdater } from "./useUpdater";
 import { useAutoClipboard } from "./useAutoClipboard";
@@ -26,8 +25,7 @@ import { useScreenPeek } from "./useScreenPeek";
 export function useAppState() {
   const appVersion = useAppVersion();
   const { updateStatus, downloadProgress } = useUpdater();
-  const { activationStatus, setActivationStatus } = useActivation();
-  const { backendOnline, restartInfo } = useBackendStatus(activationStatus);
+  const { backendOnline, restartInfo } = useBackendStatus({ allowed: true });
   const { whisperReady, whisperLoading, whisperFailed } = useWhisperStatus();
   const { showSplash, setShowSplash, splashMode, setSplashMode } =
     useSplashScreen();
@@ -150,7 +148,6 @@ export function useAppState() {
 
   const { copiedCode, copiedText, copyText, copyCode, sendMessage, cancelRequest, freeMessagesLeft, freeMessagesLimit } =
     useChatActions({
-      activationStatus,
       isLoading,
       isTyping,
       setIsLoading,
@@ -168,11 +165,8 @@ export function useAppState() {
 
   const {
     isRecording,
-    isMicRecording,
     startDesktopAudioRecording,
     stopDesktopAudioRecording,
-    startMicRecording,
-    stopMicRecording,
   } = useAudioRecording({
     setMessages,
     setIsLoading,
@@ -283,7 +277,6 @@ export function useAppState() {
     chatEndRef,
     freeMessagesLeft, freeMessagesLimit,
     isRecording, startDesktopAudioRecording, stopDesktopAudioRecording,
-    isMicRecording, startMicRecording, stopMicRecording,
     whisperReady, whisperLoading, whisperFailed,
     autoClipboard, setAutoClipboard,
     isScreenPeeking, startScreenPeek, stopScreenPeek,
@@ -321,7 +314,6 @@ export function useAppState() {
   };
 
   return {
-    activationStatus, setActivationStatus,
     backendOnline, restartInfo,
     showSplash, setShowSplash, splashMode, setSplashMode,
     updateStatus, downloadProgress,

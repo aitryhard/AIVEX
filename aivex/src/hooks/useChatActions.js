@@ -24,7 +24,6 @@ function setDailyCount(count) {
 const DAILY_FREE_LIMIT = 50;
 
 export function useChatActions({
-  activationStatus,
   isLoading,
   isTyping,
   setIsLoading,
@@ -74,7 +73,6 @@ export function useChatActions({
   }
 
   async function sendMessage() {
-    if (!activationStatus?.allowed) return;
     if (isLoading || isTyping || sendInProgressRef.current) return;
     sendInProgressRef.current = true;
 

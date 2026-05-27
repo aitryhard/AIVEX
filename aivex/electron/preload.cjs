@@ -28,50 +28,6 @@ contextBridge.exposeInMainWorld("aivexWindow", {
     return () => ipcRenderer.removeListener("update:downloaded", callback);
   },
 
-  getActivationStatus: () => ipcRenderer.invoke("activation:getStatus"),
-
-  downloadUpdate: () => ipcRenderer.send("update:download"),
-
-  installUpdate: () => ipcRenderer.send("update:install"),
-
-  saveTextFile: (content, suggestedName) => ipcRenderer.invoke("file:saveText", content, suggestedName),
-
-  importJSON: () => ipcRenderer.invoke("file:importJSON"),
-
-  openFile: (filePath) => ipcRenderer.invoke("file:open", filePath),
-
-  openImage: (dataUrl) => ipcRenderer.invoke("image:open", dataUrl),
-
-  onBackendRestart: (callback) => {
-    ipcRenderer.on("backend:restarting", callback);
-
-    return () => ipcRenderer.removeListener("backend:restarting", callback);
-  },
-
-  restartBackend: () => ipcRenderer.invoke("backend:restart"),
-
-  onBeforeMinimize: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on("window:before-minimize", handler);
-    return () => ipcRenderer.removeListener("window:before-minimize", handler);
-  },
-
-  onRestore: (callback) => {
-    ipcRenderer.on("window:restored", callback);
-    return () => ipcRenderer.removeListener("window:restored", callback);
-  },
-
-  onScreenPeekToggle: (callback) => {
-    ipcRenderer.on("screenpeek:toggle", callback);
-    return () => ipcRenderer.removeListener("screenpeek:toggle", callback);
-  },
-
-  completeMinimize: () => ipcRenderer.send("window:complete-minimize"),
-
-  resizeWindow: (width, height) => ipcRenderer.invoke("window:resize", width, height),
-  resetWindowSize: () => ipcRenderer.invoke("window:resetSize"),
-  getScreenSize: () => ipcRenderer.invoke("screen:getSize"),
-  captureScreen: () => ipcRenderer.invoke("screen:capture"),
   getSubscription: () => ipcRenderer.invoke("subscription:getStatus"),
   getAlwaysOnTop: () => ipcRenderer.invoke("window:getAlwaysOnTop"),
   setAlwaysOnTop: (value) => ipcRenderer.invoke("window:setAlwaysOnTop", value),

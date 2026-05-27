@@ -12,9 +12,7 @@ import SettingsPanel from "./layout/SettingsPanel";
 import SubscriptionPanel from "./layout/SubscriptionPanel";
 import ThemeCreatorPanel from "./layout/ThemeCreatorPanel";
 import ProfileCreatorPanel from "./layout/ProfileCreatorPanel";
-import ServerErrorPanel from "./layout/ServerErrorPanel";
 import UpdateBanner from "./layout/UpdateBanner";
-import ActivationScreen from "./layout/ActivationScreen";
 import DragOverlay from "./layout/DragOverlay";
 import MainShell from "./layout/MainShell";
 import ScreenPeekView from "./layout/ScreenPeekView";
@@ -27,7 +25,6 @@ import { useAppState } from "./hooks/useAppState";
 
 function App() {
   const {
-    activationStatus, setActivationStatus,
     backendOnline, restartInfo,
     showSplash, setShowSplash, splashMode, setSplashMode,
     updateStatus, downloadProgress,
@@ -63,15 +60,6 @@ function App() {
     };
   }, []);
 
-  if (activationStatus && !activationStatus.allowed && activationStatus.status !== "server_error") {
-    return (
-      <ActivationScreen
-        activationStatus={activationStatus}
-        setActivationStatus={setActivationStatus}
-      />
-    );
-  }
-
   return (
     <MainShell
       setIsDragging={setIsDragging}
@@ -103,7 +91,7 @@ function App() {
               transition={{ duration: 0.35, ease: "easeOut" }}
               style={settingsContextValue.panelStyle}
               data-theme={settingsContextValue.isDark ? "dark" : "light"}
-              className={`relative w-screen h-screen rounded-[14px] border backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden transition-[background-color,border-color] duration-300 ${settingsContextValue.isDark ? "border-white/10" : "border-black/10"}`}
+              className={`relative w-screen h-screen rounded-[14px] backdrop-blur-[80px] shadow-none flex flex-col overflow-hidden transition-[background-color,border-color] duration-300`}
             >
               <Header backendOnline={backendOnline} />
 
@@ -145,11 +133,6 @@ function App() {
               <ThemeCreatorPanel />
 
               <ProfileCreatorPanel />
-
-              <ServerErrorPanel
-                activationStatus={activationStatus}
-                setActivationStatus={setActivationStatus}
-              />
 
               <ErrorBoundary>
                 <ChatMessages renderMarkdown={renderMarkdown} />

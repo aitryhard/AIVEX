@@ -11,7 +11,6 @@ export function useAudioRecording({ setMessages, setIsLoading }) {
   const recordedChunksRef = useRef([]);
 
   const [isRecording, setIsRecording] = useState(false);
-  const [isMicRecording, setIsMicRecording] = useState(false);
 
   function addStatusMessage(text) {
     const audioStatusId = generateId();
@@ -47,7 +46,6 @@ export function useAudioRecording({ setMessages, setIsLoading }) {
       activeAudioStatusIdRef.current = null;
       setIsLoading(false);
       setIsRecording(false);
-      setIsMicRecording(false);
     }
   }
 
@@ -103,10 +101,7 @@ export function useAudioRecording({ setMessages, setIsLoading }) {
 
   return {
     isRecording,
-    isMicRecording,
     startDesktopAudioRecording,
     stopDesktopAudioRecording,
-    startMicRecording,
-    stopMicRecording,
   };
 }

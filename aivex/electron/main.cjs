@@ -25,10 +25,6 @@ autoUpdater.autoDownload = false;
 
 let backendProcess = null;
 let mainWindow = null;
-let currentActivation = null;
-let activationCache = null;
-let activationCacheTime = 0;
-const ACTIVATION_CACHE_TTL = 30000;
 
 let backendStartTime = 0;
 let backendStarting = false;
@@ -37,85 +33,7 @@ let backendRestartTimer = null;
 const MAX_BACKEND_RESTART = 5;
 let isQuitting = false;
 
-async function checkActivation() {
-  const now = Date.now();
-
-  if (activationCache && (now - activationCacheTime) < ACTIVATION_CACHE_TTL) {
-    return activationCache;
-  }
-  try {
-    const deviceId = machineIdSync();
-
-    console.log("Activation server:", ACTIVATION_SERVER);
-    console.log("Sending activation request...");
-
-    const requestController = new AbortController();
-
-    const requestTimeout = setTimeout(() => {
-      requestController.abort();
-    }, 30000);
-
-    await fetch(`${ACTIVATION_SERVER}/request-access`, {
-      signal: requestController.signal,
-
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        deviceId,
-        appVersion: app.getVersion(),
-        platform: process.platform,
-        username: process.env.USERNAME || "unknown",
-      }),
-    });
-
-    clearTimeout(requestTimeout);
-
-    const checkController = new AbortController();
-
-    const checkTimeout = setTimeout(() => {
-      checkController.abort();
-    }, 30000);
-
-    const response = await fetch(`${ACTIVATION_SERVER}/check-access`, {
-      signal: checkController.signal,
-
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        deviceId,
-      }),
-    });
-
-    clearTimeout(checkTimeout);
-
-    const result = await response.json();
-
-    console.log("Activation result:", result);
-
-    activationCache = result;
-    activationCacheTime = now;
-
-    return result;
-  } catch (err) {
-    console.error("Activation FULL error:", err);
-
-    activationCache = {
-      allowed: false,
-      status: "server_error",
-    };
-    activationCacheTime = now;
-
-    return activationCache;
-  }
-}
+let isQuitting = false;
 
 async function startBackend() {
   if (backendStarting || backendProcess) return;
@@ -309,19 +227,11 @@ app.whenReady().then(async () => {
       });
     },
   );
-  const activation = await checkActivation();
-
-  currentActivation = activation;
-
-  console.log("Activation:", activation);
-
   createWindow();
 
-  if (activation.allowed) {
-    setTimeout(() => {
-      startBackend();
-    }, 1200);
-  }
+  setTimeout(() => {
+    startBackend();
+  }, 1200);
 
   if (!isDev) {
     autoUpdater.setFeedURL({
@@ -484,16 +394,6 @@ ipcMain.handle("clipboard:getImage", () => {
   return image.toDataURL();
 });
 
-ipcMain.handle("activation:getStatus", async () => {
-  currentActivation = await checkActivation();
-
-  if (currentActivation.allowed && !backendProcess && !backendStarting && backendRestartCount < MAX_BACKEND_RESTART) {
-    await startBackend();
-  }
-
-  return currentActivation;
-});
-
 ipcMain.handle("backend:restart", async () => {
   stopBackend();
   await startBackend();
@@ -587,7 +487,7 @@ ipcMain.handle("payment:create", async (_event, tier) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ device_id: deviceId, tier }),
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(60000),
       },
     );
     return await response.json();

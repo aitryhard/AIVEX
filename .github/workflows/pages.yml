@@ -3,11 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - "aivex/src/**"
-      - "aivex/index.html"
-      - "aivex/vite.config.js"
-      - "aivex/package.json"
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -28,6 +24,8 @@ jobs:
 
       - name: Install and build
         working-directory: aivex
+        env:
+          GITHUB_PAGES: "true"
         run: npm ci && npm run build
 
       - name: Setup Pages

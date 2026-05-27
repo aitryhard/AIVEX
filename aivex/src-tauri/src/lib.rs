@@ -134,13 +134,6 @@ fn stop_audio_capture() -> Result<String, String> {
 #[tauri::command] fn get_device_id() -> String { machine_uid::get().unwrap_or_default() }
 
 #[tauri::command]
-async fn get_activation_status() -> Result<serde_json::Value, String> {
-    let did = get_device_id(); let srv = "https://server-activation-06sn.onrender.com"; let c = reqwest::Client::new();
-    let _ = c.post(format!("{}/request-access", srv)).json(&serde_json::json!({"deviceId":did,"appVersion":"1.1.6","platform":std::env::consts::OS,"username":whoami::username()})).send().await;
-    c.post(format!("{}/check-access", srv)).json(&serde_json::json!({"deviceId":did})).send().await.map_err(|e|e.to_string())?.json().await.map_err(|e|e.to_string())
-}
-
-#[tauri::command]
 async fn get_subscription() -> Result<serde_json::Value, String> {
     reqwest::get(format!("https://server-activation-06sn.onrender.com/subscription/by-device/{}", get_device_id())).await.map_err(|e|e.to_string())?.json().await.map_err(|e|e.to_string())
 }
@@ -171,7 +164,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             minimize, maximize, close, get_always_on_top, set_always_on_top,
             resize_window, reset_window_size, get_version, get_device_id,
-            get_activation_status, get_subscription, create_payment,
+            get_subscription, create_payment,
             save_text_file, open_external, get_screen_size, capture_screen,
             restart_backend, start_audio_capture, stop_audio_capture,
         ])
