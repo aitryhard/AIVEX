@@ -7,17 +7,13 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    {
-      name: 'strip-console',
-      transform(code, id) {
-        if (id.includes('node_modules')) return;
-        if (id.endsWith('.js') || id.endsWith('.jsx')) {
-          return code.replace(/\bconsole\.(log|debug|trace)\([^)]*\)\s*;?/g, '');
-        }
-      },
-    },
   ],
   build: {
     chunkSizeWarningLimit: 300,
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 })

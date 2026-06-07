@@ -12,8 +12,8 @@
 - **Чат с AI** — GPT-4o / GPT-4o-mini через OpenRouter
 - **Профили** — Tutor, Programmer, Writer, Analyst, Creative + кастомные промпты
 - **Изображения** — отправка скриншотов и буфера обмена в чат
-- **Screen Peek** — автоматический анализ экрана каждые 5 секунд
-- **Аудиозапись** — запись рабочего стола с микрофоном (Whisper)
+- **Screen Peek** — автоматический анализ экрана каждые 10 секунд
+- **Аудиозапись** — запись рабочего стола (Whisper)
 - **Темы** — 9 пресетов + свой редактор (цвет панели, сообщений, прозрачность)
 - **Подписки** — Free / Pro / Premium с разными лимитами
 
@@ -23,7 +23,7 @@
 |------|-----|---------|
 | 50 сообщений/день | ∞ сообщений | ∞ сообщений |
 | GPT-4o-mini | GPT-4o + Vision | GPT-4o + Vision |
-| 3 базовых темы | Все темы + кастомизация | Всё из Pro |
+| 4 базовых темы | Все темы + кастомизация | Всё из Pro |
 | Нет изображений | Изображения + аудио | + Приоритетная поддержка |
 | | | + Ранний доступ |
 
@@ -33,25 +33,24 @@
 git clone https://github.com/aitryhard/AIVEX.git
 cd aivex
 npm install
-npm run dev          # dev mode (Vite + Electron)
+npm run tauri dev          # dev mode
 ```
 
 **Продакшен-сборка:**
 ```bash
-npm run build        # frontend
-npx electron-builder # .exe installer (см. electron-builder.yml)
+npm run tauri build        # .msi/.exe installer
 ```
 
 ## Архитектура
 
 ```
 ┌─────────────────┐     ┌──────────────┐     ┌─────────────┐
-│  Electron App   │────▶│  Backend     │────▶│ OpenRouter  │
-│  (React + Vite) │     │  localhost   │     │ (GPT-4o)    │
-│                 │     │  :8000       │     │             │
-└────────┬────────┘     └──────┬───────┘     └─────────────┘
-         │                     │
-         ▼                     ▼
+│  Tauri App       │────▶│  Backend     │────▶│ OpenRouter  │
+│  (React + Vite)  │     │  localhost   │     │ (GPT-4o)    │
+│                  │     │  :8000       │     │             │
+└────────┬─────────┘     └──────┬───────┘     └─────────────┘
+         │                      │
+         ▼                      ▼
 ┌─────────────────────────────────────┐
 │  Activation Server (Render)         │
 │  - Активация устройств              │
@@ -65,7 +64,7 @@ npx electron-builder # .exe installer (см. electron-builder.yml)
 
 - **Frontend:** React 19, Vite, Framer Motion, Tailwind CSS, Lucide
 - **Backend:** Python 3 + FastAPI, httpx, Whisper (локально)
-- **Desktop:** Electron 35, node-machine-id
+- **Desktop:** Tauri 2, Rust
 - **Server:** Python 3 + FastAPI, PostgreSQL (Render)
 - **Payments:** YooKassa
 - **AI:** OpenRouter (GPT-4o / GPT-4o-mini)
@@ -83,7 +82,7 @@ aivex/
 │   └── constants/       # Пресеты / конфиги
 ├── backend/             # Локальный Python-бэкенд
 │   └── routes/          # /chat, /health, /transcribe-audio
-├── electron/            # Electron main + preload
+├── src-tauri/           # Tauri shell (Rust)
 └── package.json
 server-activation/       # Сервер на Render
 └── main.py              # FastAPI + PostgreSQL + Telegram Bot
